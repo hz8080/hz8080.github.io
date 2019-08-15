@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>[JVM]Java对象的组成、大小计算 | 土川的自留地</title>
+  <meta name="description" content="基于Hotspot，我们给自己一个对象 :(">
+<meta name="keywords" content="JVM,OOP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[JVM]Java对象的组成、大小计算">
+<meta property="og:url" content="https://htchz.cc/2006878642.html">
+<meta property="og:site_name" content="土川的自留地">
+<meta property="og:description" content="基于Hotspot，我们给自己一个对象 :(">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://htchz.cc/images/pasted-69.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-70.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-71.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-82.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-72.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-73.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-83.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-74.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-84.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-85.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-80.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-81.png">
+<meta property="og:updated_time" content="2019-02-14T10:39:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[JVM]Java对象的组成、大小计算">
+<meta name="twitter:description" content="基于Hotspot，我们给自己一个对象 :(">
+<meta name="twitter:image" content="https://htchz.cc/images/pasted-69.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://htchz.cc/2006878642.html">
+  
+    <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/unnamed.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+</head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/fennecs" target="_blank">
+          <img class="img-circle img-rotate" src="/images/unnamed.png" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">土川</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">后端码农</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Guangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>碧油鸡!碧油鸡！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">48</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/哈希一致性/">哈希一致性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/碧油鸡/">碧油鸡</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13.14px;">AOP</a> <a href="/tags/BT/" style="font-size: 13px;">BT</a> <a href="/tags/Bean/" style="font-size: 13px;">Bean</a> <a href="/tags/GC/" style="font-size: 13.57px;">GC</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/Https/" style="font-size: 13.14px;">Https</a> <a href="/tags/Hystrix/" style="font-size: 13px;">Hystrix</a> <a href="/tags/IOC/" style="font-size: 13px;">IOC</a> <a href="/tags/JVM/" style="font-size: 13.71px;">JVM</a> <a href="/tags/Java集合/" style="font-size: 14px;">Java集合</a> <a href="/tags/Json/" style="font-size: 13px;">Json</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 13.14px;">NIO</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/OOP/" style="font-size: 13.29px;">OOP</a> <a href="/tags/TCP/" style="font-size: 13px;">TCP</a> <a href="/tags/bbr/" style="font-size: 13px;">bbr</a> <a href="/tags/goroutine/" style="font-size: 13.14px;">goroutine</a> <a href="/tags/jdk8/" style="font-size: 13.14px;">jdk8</a> <a href="/tags/multithread/" style="font-size: 13.86px;">multithread</a> <a href="/tags/properties/" style="font-size: 13px;">properties</a> <a href="/tags/位图/" style="font-size: 13px;">位图</a> <a href="/tags/位运算/" style="font-size: 13px;">位运算</a> <a href="/tags/哈希一致性/" style="font-size: 13px;">哈希一致性</a> <a href="/tags/坑/" style="font-size: 13px;">坑</a> <a href="/tags/数据分片/" style="font-size: 13px;">数据分片</a> <a href="/tags/服务限流/" style="font-size: 13.14px;">服务限流</a> <a href="/tags/正则/" style="font-size: 13px;">正则</a> <a href="/tags/碧油鸡/" style="font-size: 13.43px;">碧油鸡</a> <a href="/tags/运维/" style="font-size: 13px;">运维</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">39</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-JVM-对象的组成" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [JVM]Java对象的组成、大小计算
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2006878642.html" class="article-date">
+	  <time datetime="2018-03-22T14:23:00.000Z" itemprop="datePublished">2018-03-22</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Java基础/">Java基础</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/JVM/">JVM</a>, <a class="article-tag-link" href="/tags/OOP/">OOP</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2006878642.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.1k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 8(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <blockquote>
+<p>基于Hotspot，我们给自己一个对象 :(</p>
+</blockquote>
+<a id="more"></a>
+
+<h1 id="Java对象模型"><a href="#Java对象模型" class="headerlink" title="Java对象模型"></a>Java对象模型</h1><p>Hotspot主要是用C++写的，所以它定义的Java对象表示模型也是基于C++实现的。</p>
+<p>Java对象的表示模型叫做“OOP-Klass”二分模型，包括两部分:</p>
+<ol>
+<li><p>OOP，即Ordinary Object Point，普通对象指针，说白了就是表示对象除了元数数据之外的信息。</p>
+</li>
+<li><p>Klass，即Java类的C++对等体，用来描述Java类，包含了元数据和方法信息</p>
+</li>
+</ol>
+<p>一个Java对象就包括两部分，数据和方法，分别对应到OOP和Klass。</p>
+<p>JVM运行时加载一个Class时，会在JVM内部创建一个instanceKlass对象，表示这个类的运行时元数据。创建一个这个Class的Java对象时，会在JVM内部相应的创建一个instanceOop来表示这个Java对象。熟悉JVM的同学可以明白，instanceKlass对象放在了方法区，instanceOop放在了堆，instanceOop的引用放在了JVM栈。</p>
+<p>JVM是基于栈来运行的，当一个线程调用一个对象的方法时，会在它的JVM栈的栈顶创建一个栈帧（<code>Frame</code>）的数据结构，这个数据结构是用来保存方法的局部变量，操作数栈，动态连接和方法返回值的。<strong>通过参数传递的值和在方法中new出来的对象的引用都保持在局部变量表里面。</strong></p>
+<blockquote>
+<p>Java的方法调用是值传递，不是引用传递，原因就在这里，传递进来的参数相当于在局部变量表里面拷贝了一份，实际计算时，操作数栈操作的是局部变量变量里面的值，而不是外部的变量。</p>
+</blockquote>
+<p><img src="/images/pasted-69.png" alt="upload successful"></p>
+<p>在堆中创建的Java对象实际只包含数据信息，它主要包含三（四）部分：</p>
+<ol>
+<li>对象头，也叫Markword</li>
+<li>元数据指针，可以理解为类对象指针，指向方法区的instanceKlass实例。如果是32位的，默认开启对象指针压缩，<strong>4个字节</strong></li>
+<li>实例数据</li>
+<li>(如果是数组对象的话，还多了一个部分，就是数组长度)，<strong>4个字节</strong></li>
+<li>另外还有Padding(内存对齐)，按照8的倍数对齐</li>
+</ol>
+<p><img src="/images/pasted-70.png" alt="upload successful"></p>
+<p>对象头代表的意义是可变的，通过标志位决定。主要存储对象运行时记录信息，如hashcode, GC分代年龄，锁状态标志，偏向线程ID，偏向时间戳等。对象头的长度和JVM的字长一致，比如32位JVM的对象头是32位，64位JVM的对象头是64位。下面是对于64位jvm的<code>markword</code>的说明</p>
+<table>
+<thead>
+<tr>
+<th>偏向锁标识位</th>
+<th>锁标识位</th>
+<th align="center">锁状态</th>
+<th>存储内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>01</td>
+<td align="center">未锁定</td>
+<td>hashcode(31),年龄(4)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>01</td>
+<td align="center">偏向锁</td>
+<td>线程ID(54),时间戳(2),年龄(4)</td>
+</tr>
+<tr>
+<td>无</td>
+<td>00</td>
+<td align="center">轻量级锁</td>
+<td>栈中锁记录的指针(64)</td>
+</tr>
+<tr>
+<td>无</td>
+<td>10</td>
+<td align="center">重量级锁</td>
+<td>monitor的指针(64)</td>
+</tr>
+<tr>
+<td>无</td>
+<td>11</td>
+<td align="center">GC标记</td>
+<td>空，不需要记录信息</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所谓的给一个对象加锁，其实就是设置了对象头标志位。当其他线程看到这个对象的状态是加锁状态后，就等待释放锁。关于锁我们另开一篇。</p>
+</blockquote>
+<p>在方法区的instanceKlass对象相当于Class加载后创建的运行时对象，它包含了运行时常量池，字段，方法等元数据，当调用一个对象的方法时，如上面的图所示，实际定位到了方法区的instanceKlass对象的方法元数据。</p>
+<h1 id="使用HSDB调试"><a href="#使用HSDB调试" class="headerlink" title="使用HSDB调试"></a>使用HSDB调试</h1><blockquote>
+<p>HSDB是一款内置与SA的GUI调试工具，集成了各种JVM监控工具，可以用来深入分析JVM内部状态。这玩意在windows的jdk7才自带，mac和linux吓得jdk6就有了。</p>
+</blockquote>
+<p>首先我们运行一个程序，并打上断点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public class Person &#123;  </span><br><span class="line">    private String name;  </span><br><span class="line">    private int age;  </span><br><span class="line">    private boolean sex;  </span><br><span class="line">      </span><br><span class="line">    public void sayHi()&#123;  </span><br><span class="line">        System.out.println(&quot;Say hi from ITer_ZC&quot;);  </span><br><span class="line">    &#125;  </span><br><span class="line">      </span><br><span class="line">    public static void main(String[] args)&#123;  </span><br><span class="line">        Person p = new Person();  </span><br><span class="line">        p.sayHi();  </span><br><span class="line">          </span><br><span class="line">        try &#123;  </span><br><span class="line">            Thread.sleep(500000);  </span><br><span class="line">        &#125; catch (InterruptedException e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>上面断点用sleep代替。<br>好像还可以用jdb工具断点，没研究 - - </p>
+</blockquote>
+<p>启动程序，运行jps命令，查看当前java进程id，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\zack.huang&gt;jps</span><br><span class="line">7524</span><br><span class="line">8276 Jps</span><br><span class="line">4552 Person</span><br></pre></td></tr></table></figure>
+
+<p>由<code>4552 Person</code>得知<code>4552</code>是上面java程序的id，接着运行下面的命令，</p>
+<pre><code>java -cp sa-jdi.jar sun.jvm.hotspot.HSDB</code></pre><blockquote>
+<p>sa-jdi.jar在<code>%JAVA_HOME%\lib</code>目录下，不过我的<code>JAVA_HOME</code>路径好像因为带了空格老启动不了，直接把jar复制到桌面了启动。</p>
+</blockquote>
+<p><img src="/images/pasted-71.png" alt="upload successful"></p>
+<p>界面一片白。</p>
+<p>输入pid之后，显示<br><img src="/images/pasted-82.png" alt="upload successful"><br><img src="/images/pasted-72.png" alt="upload successful"><br>可以看到Personde的地址</p>
+<p><img src="/images/pasted-73.png" alt="upload successful"></p>
+<p>在inspector里面查看<code>0x00000007c0060028</code>，我们可以看到instanceKlass的字段，方法，运行时常量池，父类，兄弟类等元数据信息</p>
+<p><img src="/images/pasted-83.png" alt="upload successful"><br>在Object Histogram里面找到Person对象</p>
+<p><img src="/images/pasted-74.png" alt="upload successful"></p>
+<p>查看Person Oop的运行时实例</p>
+<p><img src="/images/pasted-84.png" alt="upload successful"></p>
+<p>_mark就是对象头，接着是实例数据信息。HSDB没有显示类对象指针</p>
+<p><img src="/images/pasted-85.png" alt="upload successful"></p>
+<h1 id="计算对象的大小"><a href="#计算对象的大小" class="headerlink" title="计算对象的大小"></a>计算对象的大小</h1><p>程序计算方法</p>
+<ol>
+<li>通过java.lang.instrument.Instrumentation的getObjectSize(obj)直接获取对象的大小</li>
+<li>通过sun.misc.Unsafe对象的objectFieldOffset(field)等方法结合反射来计算对象的大小</li>
+</ol>
+<h2 id="java-lang-instrument-Instrumentation-getObjectSize-的方式"><a href="#java-lang-instrument-Instrumentation-getObjectSize-的方式" class="headerlink" title="java.lang.instrument.Instrumentation.getObjectSize()的方式"></a>java.lang.instrument.Instrumentation.getObjectSize()的方式</h2><p>讲讲java.lang.instrument.Instrumentation.getObjectSize()的方式，这种方法得到的是Shallow Size，即遇到引用时，只计算引用的长度，不计算所引用的对象的实际大小。如果要计算所引用对象的实际大小，可以通过递归的方式去计算。</p>
+<p>java.lang.instrument.Instrumentation的实例必须通过指定javaagent的方式才能获得，具体的步骤如下：</p>
+<ol>
+<li>定义一个类，提供一个premain方法: public static void premain(String agentArgs, Instrumentation instP)</li>
+<li>创建META-INF/MANIFEST.MF文件，内容是指定PreMain的类是哪个： Premain-Class: sizeof.ObjectShallowSize</li>
+<li>把这个类打成jar，然后用java -javaagent XXXX.jar XXX.main的方式执行</li>
+</ol>
+<p>下面先定义一个类来获得java.lang.instrument.Instrumentation的实例,并提供了一个static的sizeOf方法对外提供Instrumentation的能力</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> sizeof;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectShallowSize</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Instrumentation inst;  </span><br><span class="line">      </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">premain</span><span class="params">(String agentArgs, Instrumentation instP)</span></span>&#123;  </span><br><span class="line">        inst = instP;  </span><br><span class="line">    &#125;  </span><br><span class="line">      </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">long</span> <span class="title">sizeOf</span><span class="params">(Object obj)</span></span>&#123;  </span><br><span class="line">        <span class="keyword">return</span> inst.getObjectSize(obj);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义META-INF/MANIFEST.MF文件</p>
+<pre><code>Premain-Class: sizeof.ObjectShallowSize  </code></pre><p>打成jar包</p>
+<pre><code>cd 编译后的类和META-INF文件夹所在目录  
+jar cvfm java-agent-sizeof.jar META-INF/MANIFEST.MF  .  </code></pre><p>准备好了这个jar之后，我们可以写测试类来测试Instrumentation的getObjectSize方法了。在这之前我们先来看对象在内存中是按照什么顺序排列的，字段的定义按如下顺序</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectA</span> </span>&#123;  <span class="comment">// 注释是对应类型占的字节空间</span></span><br><span class="line">       String str;  <span class="comment">// 4 </span></span><br><span class="line">       <span class="keyword">int</span> i1; <span class="comment">// 4  </span></span><br><span class="line">       <span class="keyword">byte</span> b1; <span class="comment">// 1  </span></span><br><span class="line">       <span class="keyword">byte</span> b2; <span class="comment">// 1  </span></span><br><span class="line">       <span class="keyword">int</span> i2;  <span class="comment">// 4   </span></span><br><span class="line">       ObjectB obj; <span class="comment">//4  </span></span><br><span class="line">       <span class="keyword">byte</span> b3;  <span class="comment">// 1  </span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>按照我们之前说的方法来计算一下这个对象所占大小，注意按8对齐：  </p>
+<pre><code>8(_mark) + 4(元数据指针) + 4(str) + 4(i1) + 1(b1) + 1(b2) + 2(padding) + 4(i2) + 4(obj) + 1(b3) + 7(padding) = 40 ?</code></pre><p>但事实上是这样的吗？ 我们来用Instrumentation的getObjectSize来计算一下先:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> test;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> sizeof.ObjectShallowSize;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SizeofWithInstrumetation</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectA</span> </span>&#123;  </span><br><span class="line">        String str;  <span class="comment">// 4  </span></span><br><span class="line">        <span class="keyword">int</span> i1; <span class="comment">// 4  </span></span><br><span class="line">        <span class="keyword">byte</span> b1; <span class="comment">// 1  </span></span><br><span class="line">        <span class="keyword">byte</span> b2; <span class="comment">// 1  </span></span><br><span class="line">        <span class="keyword">int</span> i2;  <span class="comment">// 4   </span></span><br><span class="line">        ObjectB obj; <span class="comment">//4  </span></span><br><span class="line">        <span class="keyword">byte</span> b3;  <span class="comment">// 1  </span></span><br><span class="line">    &#125;  </span><br><span class="line">      </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectB</span> </span>&#123;  </span><br><span class="line">          </span><br><span class="line">    &#125;  </span><br><span class="line">      </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;  </span><br><span class="line">        System.out.println(ObjectShallowSize.sizeOf(<span class="keyword">new</span> ObjectA()));  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/pasted-80.png" alt="upload successful"><br>得到的结果是32！不是会按8对齐吗，b3之前的数据加起来已经是32了，多了1个b3，为33，应该对齐到40才对。<br>事实上，HotSpot创建的对象的字段会先按照给定顺序排列一下,默认的顺序如下，<strong>从长到短排列，引用排最后</strong>:  </p>
+<pre><code>long/double --&gt; int/float --&gt;  short/char --&gt; byte/boolean --&gt; Reference</code></pre><p>这个顺序可以使用JVM参数:  -XX:FieldsAllocationSylte=0(默认是1)来改变。<br>我们使用sun.misc.Unsafe对象的objectFieldOffset方法来验证一下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Field[] fields = ObjectA.class.getDeclaredFields();  </span><br><span class="line">   <span class="keyword">for</span>(Field f: fields)&#123;  </span><br><span class="line">   	System.out.println(f.getName() + <span class="string">" offset: "</span> +unsafe.objectFieldOffset(f));  </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/pasted-81.png" alt="upload successful"><br>可以看到确实是按照<strong>从长到短，引用排最后</strong>的方式在内存中排列的。按照这种方法我们来重新计算下ObjectA创建的对象的长度:</p>
+<pre><code>8(_mark) + 4(元数据指针) + 4(i1) + + 4(i2) + 1(b1) + 1(b2) + 1(b3) + 1(padding) +  4(str) + 4(obj) = 32</code></pre><p>这种计算方法和程序计算方法一样</p>
+<blockquote>
+<p>unsafe的方式就不讲了，这篇主要想说怎么计算一个对象占用的内存大小，可以点击<a href="http://blog.csdn.net/iter_zc/article/details/41822719" target="_blank" rel="noopener">原博</a>查看unsafe</p>
+</blockquote>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/2006878642.html" title="[JVM]Java对象的组成、大小计算" target="_blank" rel="external">https://htchz.cc/2006878642.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/3095735483.html" title="[数据库]Mysql查询条件的类型强转"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/1103575483.html" title="[Chrome小绿锁]Https那些事"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/2006878642.html';
+        
+        this.page.identifier = 'JVM-对象的组成';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>[Dubbo]探索dubbo2.6.3版本之前的一个问题 | 土川的自留地</title>
+  <meta name="description" content="由于dubbo版本较低遇到了一个诡异的问题。">
+<meta name="keywords" content="碧油鸡">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Dubbo]探索dubbo2.6.3版本之前的一个问题">
+<meta property="og:url" content="https://htchz.cc/1632594101.html">
+<meta property="og:site_name" content="土川的自留地">
+<meta property="og:description" content="由于dubbo版本较低遇到了一个诡异的问题。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://htchz.cc/images/pasted-154.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-153.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-155.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-156.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-157.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-158.png">
+<meta property="og:updated_time" content="2019-03-12T07:01:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[Dubbo]探索dubbo2.6.3版本之前的一个问题">
+<meta name="twitter:description" content="由于dubbo版本较低遇到了一个诡异的问题。">
+<meta name="twitter:image" content="https://htchz.cc/images/pasted-154.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://htchz.cc/1632594101.html">
+  
+    <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/unnamed.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+</head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/fennecs" target="_blank">
+          <img class="img-circle img-rotate" src="/images/unnamed.png" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">土川</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">后端码农</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Guangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>碧油鸡!碧油鸡！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">48</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/哈希一致性/">哈希一致性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/碧油鸡/">碧油鸡</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13.14px;">AOP</a> <a href="/tags/BT/" style="font-size: 13px;">BT</a> <a href="/tags/Bean/" style="font-size: 13px;">Bean</a> <a href="/tags/GC/" style="font-size: 13.57px;">GC</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/Https/" style="font-size: 13.14px;">Https</a> <a href="/tags/Hystrix/" style="font-size: 13px;">Hystrix</a> <a href="/tags/IOC/" style="font-size: 13px;">IOC</a> <a href="/tags/JVM/" style="font-size: 13.71px;">JVM</a> <a href="/tags/Java集合/" style="font-size: 14px;">Java集合</a> <a href="/tags/Json/" style="font-size: 13px;">Json</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 13.14px;">NIO</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/OOP/" style="font-size: 13.29px;">OOP</a> <a href="/tags/TCP/" style="font-size: 13px;">TCP</a> <a href="/tags/bbr/" style="font-size: 13px;">bbr</a> <a href="/tags/goroutine/" style="font-size: 13.14px;">goroutine</a> <a href="/tags/jdk8/" style="font-size: 13.14px;">jdk8</a> <a href="/tags/multithread/" style="font-size: 13.86px;">multithread</a> <a href="/tags/properties/" style="font-size: 13px;">properties</a> <a href="/tags/位图/" style="font-size: 13px;">位图</a> <a href="/tags/位运算/" style="font-size: 13px;">位运算</a> <a href="/tags/哈希一致性/" style="font-size: 13px;">哈希一致性</a> <a href="/tags/坑/" style="font-size: 13px;">坑</a> <a href="/tags/数据分片/" style="font-size: 13px;">数据分片</a> <a href="/tags/服务限流/" style="font-size: 13.14px;">服务限流</a> <a href="/tags/正则/" style="font-size: 13px;">正则</a> <a href="/tags/碧油鸡/" style="font-size: 13.43px;">碧油鸡</a> <a href="/tags/运维/" style="font-size: 13px;">运维</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">39</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-碧油鸡-探索dubbo2-6-3版本之前的一个问题" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [Dubbo]探索dubbo2.6.3版本之前的一个问题
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/1632594101.html" class="article-date">
+	  <time datetime="2018-10-20T02:55:00.000Z" itemprop="datePublished">2018-10-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Dubbo/">Dubbo</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/碧油鸡/">碧油鸡</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/1632594101.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 669(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <blockquote>
+<p>由于<code>dubbo</code>版本较低遇到了一个诡异的问题。</p>
+</blockquote>
+<a id="more"></a>
+<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p><code>dubbo</code>的<code>RpcContext</code>存放了一个<code>attachments</code>属性，用于隐式传递参数，每次发起调用之后会<code>clear</code>清空。</p>
+<p>使用了cat监控之后，可以在<code>dubbo</code>服务调用之间传递一个id作为链路跟踪。而这个参数就是在<code>Comsumer</code>发起请求前放入<code>attachments</code>，在<code>Provider</code>接收到请求后从<code>attachments</code>拿出。</p>
+<p>测试环境调用某服务会出现这个id时有时无的情况，于是分析日志，发现没有这个id的情况下，dubbo协议走的是hessian协议。原来此服务提供了hessian访问，于是客户端会随机走dubbo或者hessian协议。</p>
+<p>为什么hessian协议会丢<code>attachments</code>？这个id是通过实现<code>dubbo</code>的<code>Filter</code>塞进去的，理论上Filter应该是协议无关的。通过debug发现，在发送请求之前的<code>RpcContext.attachments</code>里也的确是有这个id。</p>
+<h1 id="探索"><a href="#探索" class="headerlink" title="探索"></a>探索</h1><h2 id="dubbo协议"><a href="#dubbo协议" class="headerlink" title="dubbo协议"></a>dubbo协议</h2><p>dubbo的consumer调用抽象为Invoker和Invocation，在Invoker执行invoke方法之前，需要执行负载均衡、重试计数、拦截器调用链，最后执行抽象类<code>AbstractInvoker.invoke</code>方法，继而调用不同协议的<code>doInvoke</code>方法</p>
+<p>看看dubbo协议的doInvoke方法，</p>
+<p><img src="/images/pasted-154.png" alt="upload successful"><br>可以看到请求是由一个<code>HeaderExchangeClient</code>去发起，<br><img src="/images/pasted-153.png" alt="upload successful"><br>这里的的channel是一个<code>nettyClient</code>，而<code>request</code>的内容如下：<br><img src="/images/pasted-155.png" alt="upload successful"><br>dubbo协议的实现是利用<code>socket长连接</code>，将整个<code>request</code>对象发送过去的,没有丢<code>attachments</code></p>
+<h2 id="hessian协议"><a href="#hessian协议" class="headerlink" title="hessian协议"></a>hessian协议</h2><p>hessian协议下是通过<code>com.caucho.hessian.client.HessianProxy#invoke</code>来发起请求，这个方法签名如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>第一个参数不知道是干嘛的，第二个参数和第三个参数分别是调用服务的方法对象和参数。反正这个方法是没地方放<code>attchments</code>这种<strong>隐式参数</strong>含义的东西。</p>
+<p>debug看他的调用栈，</p>
+<p><img src="/images/pasted-156.png" alt="upload successful"></p>
+<p>定位到这个<code>com.alibaba.dubbo.rpc.proxy.AbstractProxyInvoker#invoke</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">invoke</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RpcResult(doInvoke(proxy, invocation.getMethodName(), invocation.getParameterTypes(), invocation.getArguments()));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InvocationTargetException e) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RpcResult(e.getTargetException());</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(<span class="string">"Failed to invoke remote proxy method "</span> + invocation.getMethodName() + <span class="string">" to "</span> + getUrl() + <span class="string">", cause: "</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，从这里开始</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">new</span> RpcResult(doInvoke(proxy, invocation.getMethodName(), invocation.getParameterTypes(), invocation.getArguments()));</span><br></pre></td></tr></table></figure>
+
+<p>就把invocation里的<code>attachments</code>丢了</p>
+<p><img src="/images/pasted-157.png" alt="upload successful"></p>
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>dubbo版本至少升级直2.6.3，这个版本对提供了对hessian协议的<code>attachments</code>支持。</p>
+<p><img src="/images/pasted-158.png" alt="upload successful"></p>
+<p>下面是部分代码，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DubboHessianURLConnectionFactory</span> <span class="keyword">extends</span> <span class="title">HessianURLConnectionFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> HessianConnection <span class="title">open</span><span class="params">(URL url)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        HessianConnection connection = <span class="keyword">super</span>.open(url);</span><br><span class="line">        RpcContext context = RpcContext.getContext();</span><br><span class="line">        <span class="keyword">for</span> (String key : context.getAttachments().keySet()) &#123;</span><br><span class="line">            connection.addHeader(Constants.DEFAULT_EXCHANGER + key, context.getAttachment(key));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> connection;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>dubbo通过继承hessian库的类，在处理<code>URL</code>的时候把<code>attachments</code>放到header里去了，接收请求时再从header里拿出来。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/1632594101.html" title="[Dubbo]探索dubbo2.6.3版本之前的一个问题" target="_blank" rel="external">https://htchz.cc/1632594101.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/754409717.html" title="[Java基础]Java的SPI机制"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/1193009570.html" title="[Java基础]正确使用CompletableFuture"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/1632594101.html';
+        
+        this.page.identifier = '碧油鸡-探索dubbo2-6-3版本之前的一个问题';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>

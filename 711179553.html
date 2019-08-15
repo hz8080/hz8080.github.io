@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>[建站]Hexo+Nginx+VPS实现HTTPS建站 | 土川的自留地</title>
+  <meta name="description" content="拿人家hexo来建站，参考hexo建站写的，加上一些自己的东西  系统：centos6，是vultr的一个vps，1000g流量100m带宽可以跑满，最低每个月5美刀，点击就送屠龙宝刀嘿嘿vultr.com使用工具：nginx用来做反向代理和https重定向、certbot来做免费证书申请、GitHub pages 同步博客、hexo做静态资源、hey hexo做博客管理 GitHub Page">
+<meta name="keywords" content="Https,Hexo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[建站]Hexo+Nginx+VPS实现HTTPS建站">
+<meta property="og:url" content="https://htchz.cc/711179553.html">
+<meta property="og:site_name" content="土川的自留地">
+<meta property="og:description" content="拿人家hexo来建站，参考hexo建站写的，加上一些自己的东西  系统：centos6，是vultr的一个vps，1000g流量100m带宽可以跑满，最低每个月5美刀，点击就送屠龙宝刀嘿嘿vultr.com使用工具：nginx用来做反向代理和https重定向、certbot来做免费证书申请、GitHub pages 同步博客、hexo做静态资源、hey hexo做博客管理 GitHub Page">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://htchz.cc/images/pasted-16.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-17.png">
+<meta property="og:updated_time" content="2019-01-29T02:42:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[建站]Hexo+Nginx+VPS实现HTTPS建站">
+<meta name="twitter:description" content="拿人家hexo来建站，参考hexo建站写的，加上一些自己的东西  系统：centos6，是vultr的一个vps，1000g流量100m带宽可以跑满，最低每个月5美刀，点击就送屠龙宝刀嘿嘿vultr.com使用工具：nginx用来做反向代理和https重定向、certbot来做免费证书申请、GitHub pages 同步博客、hexo做静态资源、hey hexo做博客管理 GitHub Page">
+<meta name="twitter:image" content="https://htchz.cc/images/pasted-16.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://htchz.cc/711179553.html">
+  
+    <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/unnamed.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+</head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/fennecs" target="_blank">
+          <img class="img-circle img-rotate" src="/images/unnamed.png" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">土川</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">后端码农</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Guangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>碧油鸡!碧油鸡！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">48</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/哈希一致性/">哈希一致性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/碧油鸡/">碧油鸡</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13.14px;">AOP</a> <a href="/tags/BT/" style="font-size: 13px;">BT</a> <a href="/tags/Bean/" style="font-size: 13px;">Bean</a> <a href="/tags/GC/" style="font-size: 13.57px;">GC</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/Https/" style="font-size: 13.14px;">Https</a> <a href="/tags/Hystrix/" style="font-size: 13px;">Hystrix</a> <a href="/tags/IOC/" style="font-size: 13px;">IOC</a> <a href="/tags/JVM/" style="font-size: 13.71px;">JVM</a> <a href="/tags/Java集合/" style="font-size: 14px;">Java集合</a> <a href="/tags/Json/" style="font-size: 13px;">Json</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 13.14px;">NIO</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/OOP/" style="font-size: 13.29px;">OOP</a> <a href="/tags/TCP/" style="font-size: 13px;">TCP</a> <a href="/tags/bbr/" style="font-size: 13px;">bbr</a> <a href="/tags/goroutine/" style="font-size: 13.14px;">goroutine</a> <a href="/tags/jdk8/" style="font-size: 13.14px;">jdk8</a> <a href="/tags/multithread/" style="font-size: 13.86px;">multithread</a> <a href="/tags/properties/" style="font-size: 13px;">properties</a> <a href="/tags/位图/" style="font-size: 13px;">位图</a> <a href="/tags/位运算/" style="font-size: 13px;">位运算</a> <a href="/tags/哈希一致性/" style="font-size: 13px;">哈希一致性</a> <a href="/tags/坑/" style="font-size: 13px;">坑</a> <a href="/tags/数据分片/" style="font-size: 13px;">数据分片</a> <a href="/tags/服务限流/" style="font-size: 13.14px;">服务限流</a> <a href="/tags/正则/" style="font-size: 13px;">正则</a> <a href="/tags/碧油鸡/" style="font-size: 13.43px;">碧油鸡</a> <a href="/tags/运维/" style="font-size: 13px;">运维</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">39</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-hello-world" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [建站]Hexo+Nginx+VPS实现HTTPS建站
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/711179553.html" class="article-date">
+	  <time datetime="2018-03-08T10:02:00.000Z" itemprop="datePublished">2018-03-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/建站/">建站</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/Hexo/">Hexo</a>, <a class="article-tag-link" href="/tags/Https/">Https</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/711179553.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.8k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 7(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <blockquote>
+<p>拿人家hexo来建站，参考<a href="https://www.jianshu.com/p/834d7cc0668d" target="_blank" rel="noopener">hexo建站</a>写的，加上一些自己的东西</p>
+</blockquote>
+<p>系统：centos6，是vultr的一个vps，1000g流量100m带宽可以跑满，最低每个月5美刀，点击就送屠龙宝刀嘿嘿<a href="https://www.vultr.com/?ref=7229832" target="_blank" rel="noopener">vultr.com</a><br>使用工具：nginx用来做反向代理和https重定向、certbot来做免费证书申请、GitHub pages 同步博客、hexo做静态资源、hey hexo做博客管理</p>
+<h1 id="GitHub-Pages"><a href="#GitHub-Pages" class="headerlink" title="GitHub Pages"></a>GitHub Pages</h1><p>hexo可以将文件同步到GitHub page上，可以同步后，输入<code>[你的帐户名].github.io</code> 来访问</p>
+<p><img src="/images/pasted-16.png" alt="upload successful"></p>
+<blockquote>
+<p>没有GitHub账号吗，现在你有了</p>
+</blockquote>
+<p>命名格式是:[你的帐户名].github.io，不然不行哦</p>
+<h1 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h1><p>最好照着<a href="https://hexo.io/zh-cn/docs/" target="_blank" rel="noopener">官网</a>来，因为这个东西更新有点快,链接已经说明一切<br>装node</p>
+<pre><code>curl --silent --location https://rpm.nodesource.com/setup_9.x | sudo bash -
+yum -y install nodejs</code></pre><p>装git</p>
+<pre><code>yum -y install git</code></pre><p>安装完后，正常情况下的hexo命令会加入/usr/bin中，</p>
+<blockquote>
+<p>不正常情况下…我的的命令在<code>/etc/node/lib/node_modules/hexo/bin</code>下且没加入环境变量，找了半天，第二次安装就正常了，可能是第一次没有npm没加<code>-g</code>参数。</p>
+</blockquote>
+<p>这时建个站点，执行<code>hexo init your_blog_name</code>，这里假设你要建立一个叫叫<code>foo</code>的博客，执行<code>hexo init foo | cd foo | npm install</code>, <code>ls</code>可以看到<code>foo</code>目录。</p>
+<blockquote>
+<p>这里<code>foo</code>路径是相对于你执行命令的路径。</p>
+</blockquote>
+<p>进入<code>foo</code>目录，vim打开<code>_config.yml</code>，并滚动到最下面添加如下配置信息（注意最下边有<code>deploy</code>和<code>type</code>字段，覆盖这两个字段或者删除这两个字段然后复制下面的四个字段也行。）：</p>
+<pre><code>deploy:
+    type: git
+    repo: git@github.com:hz8080/hz8080.github.io.git
+    branch: master</code></pre><blockquote>
+<p>我配了ssh验证，避免密码登陆</p>
+</blockquote>
+<p><code>foo</code>目录的结构</p>
+<pre><code>├── _config.yml
+├── package.json
+├── scaffolds
+├── source
+|  ├── _drafts
+|  └── _posts 
+└── themes</code></pre><p><code>themes</code>是我们待会主题放的地方</p>
+<p>接着在<code>foo</code>目录执行<code>hexo s -p 5000</code>看到输出，输入ip:5000就可以看到你的博客了。</p>
+<blockquote>
+<p>s是server的意思，-p是端口，默认4000。<br>不要把<code>s</code>写成<code>-s</code>，<code>-s</code>可以加，但是<code>s</code> 是启动必须的。</p>
+</blockquote>
+<h1 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h1><blockquote>
+<p>hexo clean<br>hexo g<br>hexo d</p>
+</blockquote>
+<p><code>hexo clean</code>是清楚缓存<br><code>hexo g</code>是生成本地发布文件夹<br><code>hexo d</code>是发布到deploy到 _config.yml设置的目标地址</p>
+<p>可以把三条写进bash脚本~</p>
+<pre><code>#!/bin/bash
+hexo clean
+hexo g
+hexo d</code></pre><blockquote>
+<p><code>hexo d</code> 遇到<code>not found</code> 问题, 输入<code>npm install hexo-deployer-git --save</code>，再执行<code>hexo d</code></p>
+</blockquote>
+<h1 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h1><p>hexo有很多主题，比如我用的是<a href="https://github.com/theme-next/hexo-theme-next" target="_blank" rel="noopener">next</a></p>
+<h1 id="给菜单增加标签、类目"><a href="#给菜单增加标签、类目" class="headerlink" title="给菜单增加标签、类目"></a>给菜单增加标签、类目</h1><p>在站点内，执行<code>hexo new page tags</code>，这时在<code>sources/tags</code>有<code>index.md</code>，vim编辑之，</p>
+<pre><code>---
+title: tags
+date: 2016-11-11 21:40:58
+type: &quot;tags&quot;
+---</code></pre><p>在站点的<code>_config.yml</code>把标签打开</p>
+<pre><code>menu:
+  home: /
+  #categories: /categories
+  #about: /about
+  archives: /archives
+  tags: /tags    //确保标签页已打开
+  #schedule: /schedule   
+  #commonweal: /404.html </code></pre><p>分类同理，在站点内，执行<code>hexo new page categories</code>，这时在<code>sources/categories</code>有<code>index.md</code>，vim编辑之，然后在<code>_config.yml</code>把# 去掉</p>
+<p>最后！在主题文件里（<code>themes/next/</code>）的_config.yml的tags和categories记得把注释去掉，菜单栏才会显示<code>标签</code>和<code>分类</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">menu:</span><br><span class="line">  home: / || home</span><br><span class="line">  <span class="comment">#about: /about/ || user</span></span><br><span class="line">  tags: /tags/ || tags</span><br><span class="line">  categories: /categories/ || th</span><br><span class="line">  archives: /archives/ || archive</span><br><span class="line">  <span class="comment">#schedule: /schedule/ || calendar</span></span><br><span class="line">  <span class="comment">#sitemap: /sitemap.xml || sitemap</span></span><br><span class="line">  <span class="comment">#commonweal: /404/ || heartbeat</span></span><br></pre></td></tr></table></figure>
+
+<p>重新部署，即可生效。 </p>
+<blockquote>
+<p>其他换图标、头像什么的可以搞搞</p>
+</blockquote>
+<blockquote>
+<p>hexo 修改了站点名字、介绍什么的，好像重启才生效，不知道是不是bug</p>
+</blockquote>
+<h1 id="设置‘阅读全文’"><a href="#设置‘阅读全文’" class="headerlink" title="设置‘阅读全文’"></a>设置‘阅读全文’</h1><p>hexo默认显示全部，设置阅读全文有两种方法，</p>
+<ul>
+<li>第一种，在主题的<code>_config.yml</code>的<code>auto_excerpt.enable</code>改为true，<code>length</code>是预览长度</li>
+<li>第二种，在文章加入<code>&lt;!--more--&gt;</code>，首页就会预览到<code>&lt;!--more--&gt;</code>的位置</li>
+</ul>
+<p>第一种会有<code>...</code>，且预览长度是一样的</p>
+<h1 id="域名"><a href="#域名" class="headerlink" title="域名"></a>域名</h1><p>我从godaddy 买了一个.me后缀的，年费挺便宜的，不过续费就不便宜了，可以试用一波。具体绑定方法自找。</p>
+<p>买完后在dns管理把<code>A</code>类名指向自己的服务器ip，配置完毕浏览器打开<code>你的域名:hexo端口</code>试试</p>
+<p><img src="/images/pasted-17.png" alt="upload successful"></p>
+<h1 id="博客文章管理"><a href="#博客文章管理" class="headerlink" title="博客文章管理"></a>博客文章管理</h1><ul>
+<li><a href="https://github.com/nihgwu/hexo-hey" target="_blank" rel="noopener">hexo-hey</a>，不推荐，已经停止更新，有莫名其妙的bug</li>
+<li><a href="https://jaredforsyth.com/hexo-admin" target="_blank" rel="noopener">hexo-admin</a> ，用法简单粗暴，还能自动保存，用的这个 </li>
+</ul>
+<h1 id="nginx安装"><a href="#nginx安装" class="headerlink" title="nginx安装"></a>nginx安装</h1><p>安装不赘述，直接从配置动手<br>在<code>/etc/nginx/conf.d/default.conf</code>是一个配置模板，在<code>/etc/nginx/conf.d/</code>下的*.conf都会被nginx读取。我只有一个应用，直接在<code>default.conf</code>动手</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">upstream hexo_host&#123;</span><br><span class="line">    server localhost:4000;</span><br><span class="line">&#125;</span><br><span class="line">#</span><br><span class="line"># The default serve</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">    server_name  htchz.me;</span><br><span class="line">    # root        /usr/share/nginx/html;</span><br><span class="line"></span><br><span class="line">    # Load configuration files for the default server block.</span><br><span class="line">    # include /etc/nginx/default.d/*.conf;</span><br><span class="line"></span><br><span class="line">    location /admin &#123;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_pass http://hexo_host;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 非后台管理直接走静态文件</span><br><span class="line">    location / &#123;</span><br><span class="line">        root /root/htc/public/;</span><br><span class="line">        expires  30m;</span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    error_page 404 /404.html;</span><br><span class="line">        location = /40x.html &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    error_page 500 502 503 504 /50x.html;</span><br><span class="line">        location = /50x.html &#123;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行<code>nginx -s reload</code>， 重启nginx，输入<code>域名</code>（http默认80端口），验证nginx转发端口是否生效</p>
+<blockquote>
+<p>如果请求资源报403权限不足，可能是<code>/etc/nginx/nginx.conf</code>的<code>user</code>权限不足，改成<code>root</code>就可以</p>
+</blockquote>
+<h1 id="certbot申请证书"><a href="#certbot申请证书" class="headerlink" title="certbot申请证书"></a>certbot申请证书</h1><blockquote>
+<p>为什么要博客升级https，其实只是为了装逼。chrome打开的时候地址栏一个绿色的<code>安全|https</code> 看着挺舒服的</p>
+</blockquote>
+<p>终端输入</p>
+<pre><code>wget https://dl.eff.org/certbot-auto
+chmod a+x certbot-auto
+./certbot-auto --nginx</code></pre><p>期间要输入你的邮箱，选择申请证书的域名，选择是否原端口重定向到<code>https</code>（443），选是</p>
+<p>然后certbot会自动申请证书、修改你的nginx配置。</p>
+<p>下边是80转443的配置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    if ($host = htchz.me) &#123;</span><br><span class="line">        return 301 https://$host$request_uri;</span><br><span class="line">    &#125; # managed by Certbot</span><br><span class="line"></span><br><span class="line">    listen      80;</span><br><span class="line">    server_name  htchz.me;</span><br><span class="line">    return 404; # managed by Certbot</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也可以这么写</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen      80;</span><br><span class="line">    server_name  htchz.me;</span><br><span class="line">    return 301 https://$server_name$request_uri;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>记得开通你的80、443端口。。。</p>
+</blockquote>
+<h1 id="自动续期"><a href="#自动续期" class="headerlink" title="自动续期"></a>自动续期</h1><p>certbot申请的证书只有三个月，这里写个定时任务，命令行：</p>
+<pre><code>crontab -e</code></pre><p>写入</p>
+<pre><code>0 0 * * 0 /root/www/certbot-auto renew</code></pre><p>这条命令的意思是每周日的0点0分执行<code>/root/www/certbot-auto renew</code>这条命令。执行下面这条命令查看定时任务列表中是否有刚才添加的任务</p>
+<pre><code>[root@California_VPS etc]# crontab -l 
+0 0 * * 0 /root/www/certbot-auto renew</code></pre><h1 id="后来发现的问题"><a href="#后来发现的问题" class="headerlink" title="后来发现的问题"></a>后来发现的问题</h1><p>到这里整个博客差不多了。</p>
+<p>但还是有问题。没加图片的时候，chrome还是一把小绿锁，知道加了图片之后，小绿锁就没了。<br>打开chrome控制台，看到类似下面warning，</p>
+<pre><code>Mixed Content: The page at &apos;https://domain.com/w/a?id=074ac65d-70db-422d-a6d6-a534b0f410a4&apos; was loaded over HTTPS, but requested an insecure image &apos;http://img.domain.com/images/2016/5/3/2016/058c5085-21b0-4b1d-bb64-23a119905c84_cf0d97ab-bbdf-4e25-bc5b-868bdfb581df.jpg&apos;. This content should also be served over HTTPS.</code></pre><p>原来是https站点下，图片依旧是http访问。</p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>这个简单，在服务器返回响应时加响应头，nginx配置如下</p>
+<pre><code>server {
+  ...
+  add_header Content-Security-Policy upgrade-insecure-requests;
+  ...
+}</code></pre><p>还有一个方法是在html加入meta </p>
+<pre><code>&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;upgrade-insecure-requests&quot; /&gt;</code></pre><p>在hexo这个要去改模板太麻烦</p>
+<p>然后重新加载配置文件，顺利解决~</p>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><ol>
+<li><a href="https://liziczh.com/hexo-submit.html" target="_blank" rel="noopener">优化url过长</a></li>
+<li><a href="https://www.tuicool.com/articles/7BnIVnI" target="_blank" rel="noopener">标题自动编号</a></li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/711179553.html" title="[建站]Hexo+Nginx+VPS实现HTTPS建站" target="_blank" rel="external">https://htchz.cc/711179553.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/3915904827.html" title="[碧油鸡]Hexo-admin的404探索"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://weibo.com/u/2421524520" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/711179553.html';
+        
+        this.page.identifier = 'hello-world';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
