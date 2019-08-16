@@ -26,12 +26,10 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="这是一个无符号数引发的bug">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://htchz.cc/images/20190815231254.png">
-<meta property="og:updated_time" content="2019-08-15T15:50:08.326Z">
+<meta property="og:updated_time" content="2019-08-15T16:13:48.158Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[碧油鸡]浅谈0xFF">
 <meta name="twitter:description" content="这是一个无符号数引发的bug">
-<meta name="twitter:image" content="https://htchz.cc/images/20190815231254.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/2016889271.html">
   
@@ -278,7 +276,7 @@
 <p>这是一个无符号数引发的bug</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p><img src="../images/20190815231254.png" alt="挂了"><br>项目中使用了<code>Redis</code>的<code>BitMap</code>数据结构，关于它的用法就不赘述了。</p>
+<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>项目中使用了<code>Redis</code>的<code>BitMap</code>数据结构，关于它的用法就不赘述了。</p>
 <p>我用<code>BitMap</code>来作为<code>ip</code>地址的黑名单模型，使用<code>ip</code>的<code>hashcode</code>作为<code>offset</code>，再合适不过。</p>
 <p>但是<code>ip</code>是一个32位的无符号数，而java是没有无符号数的，这就导致有些<code>ip</code>的<code>hashcode</code>是一个负数。</p>
 <p>java的做法是通过掩码的操作来进行有符号数到无符号数的转换。</p>
