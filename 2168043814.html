@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>[服务限流]接口限流 | 土川的自留地</title>
+  <meta name="description" content="尝试一下用lua脚本执行redis命令">
+<meta name="keywords" content="服务限流">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[服务限流]接口限流">
+<meta property="og:url" content="https://htchz.cc/2168043814.html">
+<meta property="og:site_name" content="土川的自留地">
+<meta property="og:description" content="尝试一下用lua脚本执行redis命令">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://htchz.cc/images/pasted-149.png">
+<meta property="og:image" content="https://htchz.cc/images/pasted-151.png">
+<meta property="og:updated_time" content="2018-10-22T03:34:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[服务限流]接口限流">
+<meta name="twitter:description" content="尝试一下用lua脚本执行redis命令">
+<meta name="twitter:image" content="https://htchz.cc/images/pasted-149.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://htchz.cc/2168043814.html">
+  
+    <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/unnamed.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+</head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/fennecs" target="_blank">
+          <img class="img-circle img-rotate" src="/images/unnamed.png" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">土川</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">后端码农</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Guangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>碧油鸡!碧油鸡！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">48</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/哈希一致性/">哈希一致性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/碧油鸡/">碧油鸡</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13.14px;">AOP</a> <a href="/tags/BT/" style="font-size: 13px;">BT</a> <a href="/tags/Bean/" style="font-size: 13px;">Bean</a> <a href="/tags/GC/" style="font-size: 13.57px;">GC</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/Https/" style="font-size: 13.14px;">Https</a> <a href="/tags/Hystrix/" style="font-size: 13px;">Hystrix</a> <a href="/tags/IOC/" style="font-size: 13px;">IOC</a> <a href="/tags/JVM/" style="font-size: 13.71px;">JVM</a> <a href="/tags/Java集合/" style="font-size: 14px;">Java集合</a> <a href="/tags/Json/" style="font-size: 13px;">Json</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 13.14px;">NIO</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/OOP/" style="font-size: 13.29px;">OOP</a> <a href="/tags/TCP/" style="font-size: 13px;">TCP</a> <a href="/tags/bbr/" style="font-size: 13px;">bbr</a> <a href="/tags/goroutine/" style="font-size: 13.14px;">goroutine</a> <a href="/tags/jdk8/" style="font-size: 13.14px;">jdk8</a> <a href="/tags/multithread/" style="font-size: 13.86px;">multithread</a> <a href="/tags/properties/" style="font-size: 13px;">properties</a> <a href="/tags/位图/" style="font-size: 13px;">位图</a> <a href="/tags/位运算/" style="font-size: 13px;">位运算</a> <a href="/tags/哈希一致性/" style="font-size: 13px;">哈希一致性</a> <a href="/tags/坑/" style="font-size: 13px;">坑</a> <a href="/tags/数据分片/" style="font-size: 13px;">数据分片</a> <a href="/tags/服务限流/" style="font-size: 13.14px;">服务限流</a> <a href="/tags/正则/" style="font-size: 13px;">正则</a> <a href="/tags/碧油鸡/" style="font-size: 13.43px;">碧油鸡</a> <a href="/tags/运维/" style="font-size: 13px;">运维</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">39</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#两个算法"><span class="toc-text">2. 两个算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#漏桶算法（LeakyBucket）"><span class="toc-text">2.1. 漏桶算法（LeakyBucket）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#令牌桶算法（TokenBucket）"><span class="toc-text">2.2. 令牌桶算法（TokenBucket）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#redis实现"><span class="toc-text">3. redis实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#使用spring驱动"><span class="toc-text">4. 使用spring驱动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Guava-RateLimiter"><span class="toc-text">5. Guava RateLimiter</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qps限制器"><span class="toc-text">5.1. qps限制器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#后记"><span class="toc-text">6. 后记</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-服务限流-接口限流" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [服务限流]接口限流
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2168043814.html" class="article-date">
+	  <time datetime="2018-09-29T07:51:00.000Z" itemprop="datePublished">2018-09-29</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/分布式/">分布式</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/服务限流/">服务限流</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2168043814.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.3k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 9(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <blockquote>
+<p>尝试一下用lua脚本执行redis命令</p>
+</blockquote>
+<a id="more"></a>
+
+<h1 id="前言">1. 前言</h1><p>对于应用内部的服务限流，熔断器Hystrix，作出很好的实践。最近开源的Sentinel也是一个不错的选择。<br>不过对于对外接口限流，好像没有什么框架。常用的限流算法就是：漏桶算法和令牌桶算法。<br>本文将利用redis和lua脚本实现令牌桶算法，同时通过spring来驱动脚本。<br>Guava提供了一个RateLimiter，我们也看一下。</p>
+<blockquote>
+<p>当然还可以用计数器方法，如设定一个计数key，一秒过期，一秒内达到n次就拒绝服务。</p>
+</blockquote>
+<h1 id="两个算法">2. 两个算法</h1><p>Google了十几个中文博客，每一篇都是一样的，都说两种算法能限制速率，但是漏桶算法不能应对突发流量而令牌桶可以，又没说为什么。在我看来，两种算法的算法不过是“一正一反”，本质是一样的。无奈英语渣看了一下维基百科”LeakyBucket”词条，<code>Overview</code>里提到，文献描述了两种版本的漏桶算法：</p>
+<ol>
+<li>as a meter（作为计量工具）</li>
+<li>as a queue（作为调度队列）</li>
+</ol>
+<p>第一种版本是令牌桶算法的<strong>镜像实现</strong>，第二种是第一种的变种。也就是其实都差不多的。</p>
+<h2 id="漏桶算法（LeakyBucket）">2.1. 漏桶算法（LeakyBucket）</h2><p><img src="/images/pasted-149.png" alt="upload successful"></p>
+<p>漏桶算法指一定<strong>速率</strong>漏水，流量进来的时候是把水加入桶里，当水&gt; <strong>容量</strong>的时候拒绝服务（或者其他策略balabala）。</p>
+<p>两个重要参数：</p>
+<ol>
+<li>漏水速率</li>
+<li>桶容量</li>
+</ol>
+<p>对于桶满的情况下，对于新的流量有两种处理方式：</p>
+<ol>
+<li>Traffic Shaping: 暂时拦截住上方水的向下流动，等待桶中的一部分水漏走后，再放行上方水。也就是上面的<strong>as a queue</strong>。</li>
+<li>Traffic Policing: 溢出的上方水直接抛弃，也就是上面的<strong>as a meter（作为计量工具）</strong></li>
+</ol>
+<p>可以看到这种算法提供一种机制控制接口被访问的速率，平滑突发的流量。</p>
+<p>伪代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">double rate; // leak rate in calls/s</span><br><span class="line">double burst; // bucket size in calls</span><br><span class="line">long refreshTime; // time for last water refresh</span><br><span class="line">double water; // water count at refreshTime</span><br><span class="line">refreshWater() &#123;</span><br><span class="line">    long now = getTimestamp();</span><br><span class="line">    //计算两次请求之间流失的水并相减</span><br><span class="line">    water = max(0, water- (now - refreshTime)*rate);</span><br><span class="line">    refreshTime = now;</span><br><span class="line">&#125;</span><br><span class="line">bool check() &#123;</span><br><span class="line">    refreshWater();</span><br><span class="line">    if (water &lt; burst) &#123; // 水桶还没满,继续加1</span><br><span class="line">        water ++;</span><br><span class="line">        return true;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="令牌桶算法（TokenBucket）">2.2. 令牌桶算法（TokenBucket）</h2><p><img src="/images/pasted-151.png" alt="upload successful"></p>
+<p>令牌桶算法是网络流量整形（Traffic Shaping）和速率限制（Rate Limiting）中最常使用的一种算法。典型情况下，令牌桶算法用来控制发送到网络上的数据字节数目，并允许突发数据的发送，用令牌数量代表字节数量。</p>
+<p>两个重要参数：</p>
+<ol>
+<li>发牌速率</li>
+<li>令牌桶容量</li>
+</ol>
+<p>对于令牌不足的情况，对流量可以进行三种方式的处理：</p>
+<ol>
+<li>丢弃数据包</li>
+<li>放入等待队列直至令牌足够</li>
+<li>进行标记，过载情况下可以进行丢弃</li>
+</ol>
+<p>令牌桶算法的原理是系统会以一个恒定的速度往桶里放入令牌，而如果请求需要被处理，则需要先从桶里获取一个令牌，当桶里没有令牌可取时，则拒绝服务(或者其他策略balabala)。从原理上看，令牌桶算法和漏桶算法是相反的，一个“进水”，一个是“漏水”。</p>
+<blockquote>
+<p>丢弃数据包的实现看楼下lua脚本</p>
+</blockquote>
+<p>Guava的<code>RateLimiter</code>就是使用了令牌桶算法。</p>
+<h1 id="redis实现">3. redis实现</h1><p>redis在2.6之后内置了对lua脚本的支持。通过lua脚本我们可以执行一些复杂的逻辑操作，同时保证整个操作过程的原子性。</p>
+<p>lua脚本写在客户端，下面是一个lua脚本，应该很容易理解</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--token_bucket.lua</span></span><br><span class="line"><span class="comment">--keys和argv都是数组</span></span><br><span class="line"><span class="comment">--tonumber()方法是转整数</span></span><br><span class="line"><span class="comment">--local表示本地变量，速度比全局变量快</span></span><br><span class="line"><span class="comment">--..表示拼接字符串</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> key = KEYS[<span class="number">1</span>];</span><br><span class="line"><span class="comment">--local limit = tonumber(ARGV[1]);</span></span><br><span class="line"><span class="keyword">local</span> step = <span class="built_in">tonumber</span>(ARGV[<span class="number">2</span>]);</span><br><span class="line"><span class="keyword">local</span> interval = <span class="built_in">tonumber</span>(ARGV[<span class="number">3</span>]);</span><br><span class="line"><span class="keyword">local</span> nowTime = <span class="built_in">tonumber</span>(ARGV[<span class="number">4</span>]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> lastClearTimeKey = <span class="string">'lastTimeOf'</span> .. key</span><br><span class="line"><span class="keyword">local</span> lastClearTime = redis.call(<span class="string">'GET'</span>, lastClearTimeKey);</span><br><span class="line"><span class="keyword">local</span> existKey = redis.call(<span class="string">'EXISTS'</span>, key);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> existKey == <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">local</span> diff = <span class="built_in">tonumber</span>(nowTime) - <span class="built_in">tonumber</span>(lastClearTime);</span><br><span class="line">    <span class="keyword">local</span> value = <span class="built_in">tonumber</span>(redis.call(<span class="string">'GET'</span>, key));</span><br><span class="line">    <span class="keyword">if</span> diff &gt; interval <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">local</span> maxValue = value + diff / interval * step;</span><br><span class="line">        <span class="keyword">if</span> maxValue &gt; step <span class="keyword">then</span></span><br><span class="line">            value = step;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            value = maxValue;</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        redis.call(<span class="string">'SET'</span>, lastClearTimeKey, nowTime);</span><br><span class="line">        redis.call(<span class="string">'SET'</span>, key, <span class="built_in">math</span>.<span class="built_in">floor</span>(value));</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> value &lt;= <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        redis.call(<span class="string">'DECR'</span>, key);</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    redis.call(<span class="string">'SET'</span>, key, step - <span class="number">1</span>);</span><br><span class="line">    redis.call(<span class="string">'SET'</span>, lastClearTimeKey, nowTime);</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="keyword">return</span> <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="使用spring驱动">4. 使用spring驱动</h1><p>由于使用的是spring-boot，redis-server在本地，所以只要引入<code>spring-data-redis</code>和<code>jedis</code>,其他配置默认</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.data&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-data-redis&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.1.0.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;redis.clients&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jedis&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.9.0&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>设置序列化器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisTemplate <span class="title">redisTemplate</span><span class="params">(RedisConnectionFactory redisConnectionFactory)</span> </span>&#123;</span><br><span class="line">    RedisTemplate redisTemplate = <span class="keyword">new</span> RedisTemplate();</span><br><span class="line">    redisTemplate.setConnectionFactory(redisConnectionFactory);</span><br><span class="line">    <span class="comment">// 设置键的序列化器</span></span><br><span class="line">    redisTemplate.setKeySerializer(<span class="keyword">new</span> StringRedisSerializer());</span><br><span class="line">    <span class="comment">// 默认Serializer,RedisTemplate在序列化key、反序列化返回值的时候找不到设置的Serializer会使用默认Serializer，而默认的默认Serializer是JdkSerializationRedisSerializer，这个会转成很难看的码可能导致lua执行出错</span></span><br><span class="line">    redisTemplate.setDefaultSerializer( <span class="keyword">new</span> GenericJackson2JsonRedisSerializer());</span><br><span class="line">    <span class="keyword">return</span> redisTemplate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>脚本的抽象类是<code>DefaultRedisScript</code>, 使用<code>RedisTemplate</code>调用。<br><code>keys</code>是<code>List</code>类型，<code>argvs</code>是数组类型，不可以搞混。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisScriptService</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> Logger log = LoggerFactory.getLogger(RedisScriptService.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> RedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">counterConsume</span><span class="params">(String key, <span class="keyword">int</span> limit, <span class="keyword">int</span> step, <span class="keyword">int</span> interval)</span> </span>&#123;</span><br><span class="line">        DefaultRedisScript&lt;Long&gt; consumeRedisScript = <span class="keyword">new</span> DefaultRedisScript&lt;&gt;();</span><br><span class="line">        consumeRedisScript.setResultType(Long.class);</span><br><span class="line">        consumeRedisScript.setScriptSource(<span class="keyword">new</span> ResourceScriptSource(<span class="keyword">new</span> ClassPathResource(<span class="string">"script/token_bucket.lua"</span>)));<span class="comment">//加载lua脚本文件</span></span><br><span class="line"></span><br><span class="line">        List&lt;Object&gt; keyList = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">        keyList.add(key);<span class="comment">//通过KEYS[1]取值</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">15</span>; i++) &#123;</span><br><span class="line">            log.info(<span class="string">"result:"</span> + redisTemplate.execute(consumeRedisScript, keyList, <span class="keyword">new</span> Object[]&#123;limit, step, interval, System.currentTimeMillis()&#125;).toString());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>2018-09-30 16:23:17.066  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.067  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.067  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.068  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.069  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.070  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.071  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.072  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.072  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.073  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:1
+2018-09-30 16:23:17.074  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:0
+2018-09-30 16:23:17.075  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:0
+2018-09-30 16:23:17.076  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:0
+2018-09-30 16:23:17.077  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:0
+2018-09-30 16:23:17.078  INFO 18660 --- [           main] c.h.learning.service.RedisScriptService  : result:0</code></pre><p><code>result</code>的1是通过，0是不通过。</p>
+<blockquote>
+<p>键没有设置过期，可以优化。</p>
+</blockquote>
+<h1 id="Guava-RateLimiter">5. Guava RateLimiter</h1><p><code>Guava RateLimiter</code>实现了令牌桶算法。这里有一个中文版的官方文档：<a href="http://ifeve.com/guava-ratelimiter/" target="_blank" rel="noopener">Guava官方文档</a>，主要就是声明发牌速率，然后需要判断能否获取令牌，则调用<code>tryAcquire()</code>或<code>tryAcquire(int)</code>方法；需要阻塞直至令牌足够，则调用<code>acquire()</code>或<code>acquire(int)</code>。</p>
+<h2 id="qps限制器">5.1. qps限制器</h2><p>假设我们要限制每秒处理task或者qps的值，代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        RateLimiter rateLimiter = RateLimiter.create(<span class="number">5</span>);</span><br><span class="line">        IntStream.range(<span class="number">0</span>, <span class="number">15</span>).forEach((a) -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (a == <span class="number">5</span>) &#123;</span><br><span class="line">                SleepUtil.sleep(<span class="number">2000</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(rateLimiter.acquire());</span><br><span class="line">            <span class="keyword">if</span> ((a + <span class="number">1</span>) % <span class="number">5</span> == <span class="number">0</span>) &#123;</span><br><span class="line">                System.out.println();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>0.0// 0令牌，还不用阻塞
+0.143213
+0.196686
+0.198948
+0.199056
+
+0.0// 停了2秒，发了5个令牌
+0.0
+0.0
+0.0
+0.0
+
+0.0// 0令牌，还不用阻塞
+0.199505
+0.198738
+0.197634
+0.196273</code></pre><p>示例里先实例一个限流器，速率为1秒5次，通过<code>acquire()</code>阻塞获得令牌，总调用15次，并返回等待时间。第5次<code>acquire()</code>完的时候，挂起2秒。  </p>
+<ul>
+<li>从输出来看，第一次取得令牌是不用等待的。  </li>
+<li>挂起2秒后，接下来的5次不用阻塞，再接下来的5次除了以第一次发生了阻塞(第一次)，也就是2秒内只发了5个令牌，不会累积。</li>
+</ul>
+<p>为什么看起来0令牌的情况下，第一次调用阻塞时间都是0呢？那是因为<code>RateLimiter</code>可以预消费（<code>acquire()</code>实际上是调用<code>acquire(1)</code>, 这和调用<code>acquire(1000)</code> 将得到相同的限制效果，如果存在这样的调用的话），但会影响下一次请求的，也就是说，如果一个高开销的任务抵达一个空闲的RateLimiter，它会被马上许可，但是下一个请求会经历额外的限制，从而来偿付高开销任务。</p>
+<p>此外需注意：RateLimiter 并不提供公平性的保证，没有先来先得的概念。</p>
+<p>这个类其实实现了<strong>令牌不足</strong>下多种应对策略</p>
+<ul>
+<li>require()属于流量整形的实现</li>
+<li>tryRequire()属于服务限流的实现</li>
+</ul>
+<h1 id="后记">6. 后记</h1><p>除此之外，nginx也有限流模块，一种是限制连接数，一种是使用令牌桶算法，具体效果没实战。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/2168043814.html" title="[服务限流]接口限流" target="_blank" rel="external">https://htchz.cc/2168043814.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/1193009570.html" title="[Java基础]正确使用CompletableFuture"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2747343217.html" title="[Golang基础]Goroutine调度"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/2168043814.html';
+        
+        this.page.identifier = '服务限流-接口限流';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
