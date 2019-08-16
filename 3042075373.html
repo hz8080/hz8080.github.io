@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#goroutine实现"><span class="toc-text">1. goroutine实现</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Go基础-goroutine的一个精彩用法" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -264,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3042075373.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 470(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 471(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -278,7 +287,7 @@
 <p>这是一个利用goroutine输出素数的一个算法，找个时间写个java版的实现…</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="goroutine实现"><a href="#goroutine实现" class="headerlink" title="goroutine实现"></a>goroutine实现</h1><p><img src="/images/pasted-128.png" alt="upload successful"><br>算法的核心是，利用合数必定是素数的乘积的性质。用一个协程作为生成器（generate）开始生成“2、3、4.。。”的自然数，利用通道将自然数流入（filter的in、out参数传递）素数过滤器（filter）中，这样生成器生成的自然数如果能从第一个素数流经所有已经生成的filter，那么他是素数，并生成一个新的素数过滤器。<br><strong>第一版</strong></p>
+<h1 id="goroutine实现">1. goroutine实现</h1><p><img src="/images/pasted-128.png" alt="upload successful"><br>算法的核心是，利用合数必定是素数的乘积的性质。用一个协程作为生成器（generate）开始生成“2、3、4.。。”的自然数，利用通道将自然数流入（filter的in、out参数传递）素数过滤器（filter）中，这样生成器生成的自然数如果能从第一个素数流经所有已经生成的filter，那么他是素数，并生成一个新的素数过滤器。<br><strong>第一版</strong></p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></span><br><span class="line"><span class="comment">// Use of this source code is governed by a BSD-style</span></span><br><span class="line"><span class="comment">// license that can be found in the LICENSE file.package main</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Send the sequence 2, 3, 4, ... to channel 'ch'.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generate</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">2</span>; ; i++ &#123;</span><br><span class="line">		ch &lt;- i <span class="comment">// Send 'i' to channel 'ch'.</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Copy the values from channel 'in' to channel 'out',</span></span><br><span class="line"><span class="comment">// removing those divisible by 'prime'.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">filter</span><span class="params">(in, out <span class="keyword">chan</span> <span class="keyword">int</span>, prime <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		i := &lt;-in <span class="comment">// Receive value of new variable 'i' from 'in'.</span></span><br><span class="line">		<span class="keyword">if</span> i%prime != <span class="number">0</span> &#123;</span><br><span class="line">			out &lt;- i <span class="comment">// Send 'i' to channel 'out'.</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// The prime sieve: Daisy-chain filter processes together.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>) <span class="comment">// Create a new channel.</span></span><br><span class="line">	<span class="keyword">go</span> generate(ch)      <span class="comment">// Start generate() as a goroutine.</span></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		prime := &lt;-ch</span><br><span class="line">		fmt.Print(prime, <span class="string">" "</span>)</span><br><span class="line">		ch1 := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</span><br><span class="line">		<span class="keyword">go</span> filter(ch, ch1, prime)</span><br><span class="line">		ch = ch1</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>第二版</p>
@@ -350,6 +359,15 @@
       <a href="/3084756888.html" title="[Go基础]Go defer的那些坑"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#key重复"><span class="toc-text">1. key重复</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#value为null"><span class="toc-text">2. value为null</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JDK8-Stream-toMap遇到的坑" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -264,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2688045267.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 437(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 439(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -278,9 +287,9 @@
 <p>略懂略懂。</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="key重复"><a href="#key重复" class="headerlink" title="key重复"></a>key重复</h1><p>写了这么一句代码</p>
+<h1 id="key重复">1. key重复</h1><p>写了这么一句代码</p>
 <pre><code>Map&lt;Long, Integer&gt; map = module.getStocks().stream().collect(Collectors.toMap(SkuStockDTO::getSkuId, SkuStockDTO::getSkuStock));</code></pre><p>当<code>SkuStockDTO::getSkuId</code>拿到相同id时会报<code>java.lang.IllegalStateException: Duplicate key xxx</code><br>其实java8已经给我们提供了解决的方式: 方法的第三个参数体现的<br><img src="/images/pasted-123.png" alt="upload successful"><br>第三个参数是一个merge策略</p>
-<h1 id="value为null"><a href="#value为null" class="headerlink" title="value为null"></a>value为null</h1><p>value为null的时候是会报空指针，<code>java.util.stream.Collectors#toMap</code>其实最终都是调用一个方法</p>
+<h1 id="value为null">2. value为null</h1><p>value为null的时候是会报空指针，<code>java.util.stream.Collectors#toMap</code>其实最终都是调用一个方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"> * <span class="meta">@param</span> &lt;T&gt; the type of the input elements</span><br><span class="line"> * <span class="meta">@param</span> &lt;K&gt; the output type of the key mapping function</span><br><span class="line"> * <span class="meta">@param</span> &lt;U&gt; the output type of the value mapping function</span><br><span class="line"> * <span class="meta">@param</span> &lt;M&gt; the type of the resulting &#123;<span class="meta">@code</span> Map&#125;</span><br><span class="line"> * <span class="meta">@param</span> keyMapper a mapping function to produce keys</span><br><span class="line"> * <span class="meta">@param</span> valueMapper a mapping function to produce values</span><br><span class="line"> * <span class="meta">@param</span> mergeFunction a merge function, used to resolve collisions between</span><br><span class="line"> *                      values associated with the same key, as supplied</span><br><span class="line"> *                      to &#123;@link Map#merge(Object, Object, BiFunction)&#125;</span><br><span class="line"> * <span class="meta">@param</span> mapSupplier a function which returns a <span class="keyword">new</span>, empty &#123;<span class="meta">@code</span> Map&#125; into</span><br><span class="line"> *                    which the results will be inserted</span><br><span class="line"> * <span class="meta">@return</span> a &#123;<span class="meta">@code</span> Collector&#125; which collects elements into a &#123;<span class="meta">@code</span> Map&#125;</span><br><span class="line"> * whose keys are the result of applying a key mapping function to the input</span><br><span class="line"> * elements, and whose values are the result of applying a value mapping</span><br><span class="line"> * function to all input elements equal to the key and combining them</span><br><span class="line"> * using the merge function</span><br><span class="line"> *</span><br><span class="line"> * @see #toMap(Function, Function)</span><br><span class="line"> * @see #toMap(Function, Function, BinaryOperator)</span><br><span class="line"> * @see #toConcurrentMap(Function, Function, BinaryOperator, Supplier)</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T, K, U, M extends Map&lt;K, U&gt;&gt;</span><br><span class="line">Collector&lt;T, ?, M&gt; toMap(Function&lt;? <span class="keyword">super</span> T, ? extends K&gt; keyMapper,</span><br><span class="line">                            Function&lt;? <span class="keyword">super</span> T, ? extends U&gt; valueMapper,</span><br><span class="line">                            BinaryOperator&lt;U&gt; mergeFunction,</span><br><span class="line">                            Supplier&lt;M&gt; mapSupplier) &#123;</span><br><span class="line">    BiConsumer&lt;M, T&gt; accumulator</span><br><span class="line">            = (map, element) -&gt; map.merge(keyMapper.apply(element),</span><br><span class="line">                                          valueMapper.apply(element), mergeFunction);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CollectorImpl&lt;&gt;(mapSupplier, accumulator, mapMerger(mergeFunction), CH_ID);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>可以看到始终都会调用<code>Map.merge</code>，而这个方法有如下代码</p>
@@ -355,6 +364,15 @@
       <a href="/2687941502.html" title="[JVM]GC那些事(八)G1"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

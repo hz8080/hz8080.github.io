@@ -228,6 +228,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#建表"><span class="toc-text">1. 建表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#执行explain"><span class="toc-text">2. 执行explain</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-数据库-Mysql查询条件的类型强转" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -267,7 +276,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3095735483.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 971(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 973(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 4(分)</span>
@@ -282,7 +291,7 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="建表"><a href="#建表" class="headerlink" title="建表"></a>建表</h1><pre><code>CREATE TABLE `users` (
+<h1 id="建表">1. 建表</h1><pre><code>CREATE TABLE `users` (
   `userID` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
   `password` varchar(20) NOT NULL,
@@ -291,7 +300,7 @@
   KEY `password` (`password`),
   KEY `age` (`age`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=100003 DEFAULT CHARSET=utf8;</code></pre><p>插入了10w条数据</p>
-<h1 id="执行explain"><a href="#执行explain" class="headerlink" title="执行explain"></a>执行explain</h1><p>这是第一种：<br><img src="/images/pasted-87.png" alt="upload successful"><br>这是第二种：<br><img src="/images/pasted-88.png" alt="upload successful"></p>
+<h1 id="执行explain">2. 执行explain</h1><p>这是第一种：<br><img src="/images/pasted-87.png" alt="upload successful"><br>这是第二种：<br><img src="/images/pasted-88.png" alt="upload successful"></p>
 <p><strong>两条语句的差别是对于字符索引，查询条件加不加引号的区别</strong></p>
 <p>从上面可以很明显的看到由于password是varchar，在where条件中不加’’，会引发全索引查询(type=index比type=all还是快的)，加了就可以用到索引（type=ref），这扫描的行数可是天差地别，对于服务器的压力和响应时间自然也是天差地别的。</p>
 <p>我们看第三种：</p>
@@ -403,6 +412,15 @@ mysql&gt; SELECT CAST(&apos;1&apos; AS SIGNED)=1;
       <a href="/2006878642.html" title="[JVM]Java对象的组成、大小计算"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

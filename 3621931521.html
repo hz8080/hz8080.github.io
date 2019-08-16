@@ -231,6 +231,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#哈希环"><span class="toc-text">1. 哈希环</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#哈希映射"><span class="toc-text">2. 哈希映射</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#将对象映射"><span class="toc-text">2.1. 将对象映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#将机器映射"><span class="toc-text">2.2. 将机器映射</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#机器的删除与添加"><span class="toc-text">3. 机器的删除与添加</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#节点-机器-的删除"><span class="toc-text">3.1. 节点(机器)的删除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#节点（机器）的添加"><span class="toc-text">3.2. 节点（机器）的添加</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#平衡性"><span class="toc-text">4. 平衡性</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-分布式-哈希一致性" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -299,25 +308,25 @@
 <li><strong>负载(Load)</strong>：负载问题实际上是从另一个角度看待分散性问题。既然不同的终端可能将相同的内容映射到不同的缓冲区中，那么对于一个特定的缓冲区而言，也可能被不同的用户映射为不同 的内容。与分散性一样，这种情况也是应当避免的，因此好的哈希算法应能够尽量降低缓冲的负荷。</li>
 </ol>
 <p>在分布式集群中，对机器的添加删除，或者机器故障后自动脱离集群这些操作是分布式集群管理最基本的功能。如果采用常用的hash(object)%N算法，那么在有机器添加或者删除后，很多原有的数据就无法找到了，这样严重的违反了单调性原则。接下来主要讲解一下一致性哈希算法是如何设计的：</p>
-<h1 id="哈希环"><a href="#哈希环" class="headerlink" title="哈希环"></a>哈希环</h1><p>按照常用的hash算法来将对应的key哈希到一个具有2^32次方个桶的空间中，即0~(2^32)-1的数字空间中。现在我们可以将这些数字头尾相连，想象成一个闭合的环形。如下图<br><img src="/images/pasted-55.png" alt="upload successful"></p>
-<h1 id="哈希映射"><a href="#哈希映射" class="headerlink" title="哈希映射"></a>哈希映射</h1><h2 id="将对象映射"><a href="#将对象映射" class="headerlink" title="将对象映射"></a>将对象映射</h2><p>现在我们将object1、object2、object3、object4四个对象通过特定的Hash函数计算出对应的key值，然后散列到Hash环上。如下图</p>
+<h1 id="哈希环">1. 哈希环</h1><p>按照常用的hash算法来将对应的key哈希到一个具有2^32次方个桶的空间中，即0~(2^32)-1的数字空间中。现在我们可以将这些数字头尾相连，想象成一个闭合的环形。如下图<br><img src="/images/pasted-55.png" alt="upload successful"></p>
+<h1 id="哈希映射">2. 哈希映射</h1><h2 id="将对象映射">2.1. 将对象映射</h2><p>现在我们将object1、object2、object3、object4四个对象通过特定的Hash函数计算出对应的key值，然后散列到Hash环上。如下图</p>
 <pre><code>Hash(object1) = key1；
 Hash(object2) = key2；
 Hash(object3) = key3；
 Hash(object4) = key4；</code></pre><p><img src="/images/pasted-56.png" alt="upload successful"></p>
-<h2 id="将机器映射"><a href="#将机器映射" class="headerlink" title="将机器映射"></a>将机器映射</h2><p>在采用一致性哈希算法的分布式集群中将新的机器加入，其原理是通过使用与对象存储一样的Hash算法将机器也映射到环中（一般情况下对机器的hash计算是采用机器的IP或者机器唯一的别名作为输入值），然后以顺时针的方向计算，将所有对象存储到离自己最近的机器中。<br>假设现在有NODE1，NODE2，NODE3三台机器，通过Hash算法得到对应的KEY值，映射到环中，其示意图如下：  </p>
+<h2 id="将机器映射">2.2. 将机器映射</h2><p>在采用一致性哈希算法的分布式集群中将新的机器加入，其原理是通过使用与对象存储一样的Hash算法将机器也映射到环中（一般情况下对机器的hash计算是采用机器的IP或者机器唯一的别名作为输入值），然后以顺时针的方向计算，将所有对象存储到离自己最近的机器中。<br>假设现在有NODE1，NODE2，NODE3三台机器，通过Hash算法得到对应的KEY值，映射到环中，其示意图如下：  </p>
 <pre><code>Hash(NODE1) = KEY1;
 Hash(NODE2) = KEY2;
 Hash(NODE3) = KEY3;</code></pre><p><img src="/images/pasted-57.png" alt="upload successful"></p>
 <p>通过上图可以看出对象与机器处于同一哈希空间中，这样按顺时针转动object1存储到了NODE1中，object3存储到了NODE2中，object2、object4存储到了NODE3中。在这样的部署环境中，hash环是不会变更的，因此，通过算出对象的hash值就能快速的定位到对应的机器中，这样就能找到对象真正的存储位置了。</p>
-<h1 id="机器的删除与添加"><a href="#机器的删除与添加" class="headerlink" title="机器的删除与添加"></a>机器的删除与添加</h1><p>普通hash求余算法最为不妥的地方就是在有机器的添加或者删除之后会照成大量的对象存储位置失效，这样就大大的不满足单调性了。下面来分析一下一致性哈希算法是如何处理的。</p>
+<h1 id="机器的删除与添加">3. 机器的删除与添加</h1><p>普通hash求余算法最为不妥的地方就是在有机器的添加或者删除之后会照成大量的对象存储位置失效，这样就大大的不满足单调性了。下面来分析一下一致性哈希算法是如何处理的。</p>
 <blockquote>
 <p>部分缓存失效是不可避免的。  </p>
 </blockquote>
-<h2 id="节点-机器-的删除"><a href="#节点-机器-的删除" class="headerlink" title="节点(机器)的删除"></a>节点(机器)的删除</h2><p>以上面的分布为例，如果NODE2出现故障被删除了，那么按照顺时针迁移的方法，object3将会被迁移到NODE3中，这样仅仅是object3的映射位置发生了变化，其它的对象没有任何的改动。如下图：<br><img src="/images/pasted-58.png" alt="upload successful"></p>
-<h2 id="节点（机器）的添加"><a href="#节点（机器）的添加" class="headerlink" title="节点（机器）的添加"></a>节点（机器）的添加</h2><p>如果往集群中添加一个新的节点NODE4，通过对应的哈希算法得到KEY4，并映射到环中，如下图：</p>
+<h2 id="节点-机器-的删除">3.1. 节点(机器)的删除</h2><p>以上面的分布为例，如果NODE2出现故障被删除了，那么按照顺时针迁移的方法，object3将会被迁移到NODE3中，这样仅仅是object3的映射位置发生了变化，其它的对象没有任何的改动。如下图：<br><img src="/images/pasted-58.png" alt="upload successful"></p>
+<h2 id="节点（机器）的添加">3.2. 节点（机器）的添加</h2><p>如果往集群中添加一个新的节点NODE4，通过对应的哈希算法得到KEY4，并映射到环中，如下图：</p>
 <p><img src="/images/pasted-59.png" alt="upload successful"></p>
-<h1 id="平衡性"><a href="#平衡性" class="headerlink" title="平衡性"></a>平衡性</h1><p>根据上面的图解分析，一致性哈希算法满足了单调性和负载均衡的特性以及一般hash算法的分散性，但这还并不能当做其被广泛应用的原由，因为还缺少了平衡性。下面将分析一致性哈希算法是如何满足平衡性的。hash算法是不保证平衡的，如上面只部署了NODE1和NODE3的情况（NODE2被删除的图），object1存储到了NODE1中，而object2、object3、object4都存储到了NODE3中，这样就照成了非常不平衡的状态。在一致性哈希算法中，为了尽可能的满足平衡性，其引入了虚拟节点。</p>
+<h1 id="平衡性">4. 平衡性</h1><p>根据上面的图解分析，一致性哈希算法满足了单调性和负载均衡的特性以及一般hash算法的分散性，但这还并不能当做其被广泛应用的原由，因为还缺少了平衡性。下面将分析一致性哈希算法是如何满足平衡性的。hash算法是不保证平衡的，如上面只部署了NODE1和NODE3的情况（NODE2被删除的图），object1存储到了NODE1中，而object2、object3、object4都存储到了NODE3中，这样就照成了非常不平衡的状态。在一致性哈希算法中，为了尽可能的满足平衡性，其引入了虚拟节点。</p>
 <blockquote>
 <p>“虚拟节点”（ virtual node ）是实际节点（机器）在 hash 空间的复制品（ replica ），一实际个节点（机器）对应了若干个“虚拟节点”，这个对应个数也成为“复制个数”，“虚拟节点”在 hash 空间中以hash值排列。</p>
 </blockquote>
@@ -397,6 +406,15 @@ Hash(“192.168.1.100#2”); // NODE1-2</code></pre><blockquote>
       <a href="/589437945.html" title="[碧油鸡]使用HttpClient3的坑"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

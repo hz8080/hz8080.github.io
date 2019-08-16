@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#标记-清除算法（Mark-Sweep）"><span class="toc-text">1. 标记-清除算法（Mark-Sweep）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#复制算法"><span class="toc-text">2. 复制算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么要有两块Survivor"><span class="toc-text">2.1. 为什么要有两块Survivor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么不设多点survivor"><span class="toc-text">2.2. 为什么不设多点survivor</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#标记-整理算法"><span class="toc-text">3. 标记-整理算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分代收集算法"><span class="toc-text">4. 分代收集算法</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-GC那些事-二-垃圾回收算法简介" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2456754784.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 479(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 487(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -277,21 +286,21 @@
 </blockquote>
 <a id="more"></a>
 <p>下面的几种垃圾回收算法在不同的空间都有不同应用。</p>
-<h1 id="标记-清除算法（Mark-Sweep）"><a href="#标记-清除算法（Mark-Sweep）" class="headerlink" title="标记-清除算法（Mark-Sweep）"></a>标记-清除算法（Mark-Sweep）</h1><p>标记出所有要回收的对象，然后统一回收。<br>不足：</p>
+<h1 id="标记-清除算法（Mark-Sweep）">1. 标记-清除算法（Mark-Sweep）</h1><p>标记出所有要回收的对象，然后统一回收。<br>不足：</p>
 <ul>
 <li>效率低下 </li>
 <li>空间碎片太多（导致分配大对象没有连续空间，不得不触发另一次垃圾收集动作）</li>
 </ul>
-<h1 id="复制算法"><a href="#复制算法" class="headerlink" title="复制算法"></a>复制算法</h1><p>基于前面的算法，把内存按容量分为两部分，第一次使用其中一部分，在gc完成后将存活对象复制到另一部分内存，清除第一部分的内存。</p>
+<h1 id="复制算法">2. 复制算法</h1><p>基于前面的算法，把内存按容量分为两部分，第一次使用其中一部分，在gc完成后将存活对象复制到另一部分内存，清除第一部分的内存。</p>
 <p>但是按照把内存划分为两半，可用内存就缩小为一半，代价真他妈高</p>
 <p>于是现代的商业虚拟机都是采用这种方式，但不是1：1分配内存而是分为一块较大的Eden和两块较小的Survivor(一般来说是8：1：1)。<br>当回收时，将Eden和Survivor中的存活对象一次性地复制到另外一块Survivor空间上，清理掉原来的Eden和Survivor中的空间</p>
-<h2 id="为什么要有两块Survivor"><a href="#为什么要有两块Survivor" class="headerlink" title="为什么要有两块Survivor"></a>为什么要有两块Survivor</h2><p>假设有survivor1和survivor2，那么eden和survivor1进行minor gc后一般survivor1会有内存碎片，这时候把存活对象放进空的survivor2，清空survivor1，就能解决内存碎片化问题。</p>
-<h2 id="为什么不设多点survivor"><a href="#为什么不设多点survivor" class="headerlink" title="为什么不设多点survivor"></a>为什么不设多点survivor</h2><p>两块够了。。</p>
+<h2 id="为什么要有两块Survivor">2.1. 为什么要有两块Survivor</h2><p>假设有survivor1和survivor2，那么eden和survivor1进行minor gc后一般survivor1会有内存碎片，这时候把存活对象放进空的survivor2，清空survivor1，就能解决内存碎片化问题。</p>
+<h2 id="为什么不设多点survivor">2.2. 为什么不设多点survivor</h2><p>两块够了。。</p>
 <blockquote>
 <p>如果空间不足，则使用分配担保机制来申请内存</p>
 </blockquote>
-<h1 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h1><p>复制收集算法在对象存活率较高时就要进行较多的复制操作，效率变低。<br>标记-整理算法在标记之后，将存活对象都往一端移动，最后直接清理端边界以外的内存。</p>
-<h1 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h1><p>将内存分为“新生代”“老年代”，新生代使用复制算法。老年代是用标记-清除算法、标记-整理算法。</p>
+<h1 id="标记-整理算法">3. 标记-整理算法</h1><p>复制收集算法在对象存活率较高时就要进行较多的复制操作，效率变低。<br>标记-整理算法在标记之后，将存活对象都往一端移动，最后直接清理端边界以外的内存。</p>
+<h1 id="分代收集算法">4. 分代收集算法</h1><p>将内存分为“新生代”“老年代”，新生代使用复制算法。老年代是用标记-清除算法、标记-整理算法。</p>
 
       
     </div>
@@ -358,6 +367,15 @@
       <a href="/2872318404.html" title="[JVM]GC那些事(一)判断对象已死"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

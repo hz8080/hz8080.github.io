@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Atomic"><span class="toc-text">1. Atomic</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CAS"><span class="toc-text">2. CAS</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#cas自旋"><span class="toc-text">3. cas自旋</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Java基础-java的CAS" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -264,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/1213316024.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 409(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 412(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -279,7 +288,7 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="Atomic"><a href="#Atomic" class="headerlink" title="Atomic"></a>Atomic</h1><p>看看这个包下的类</p>
+<h1 id="Atomic">1. Atomic</h1><p>看看这个包下的类</p>
 <p><img src="/images/pasted-132.png" alt="upload successful"><br>这个包可以简单分为4类</p>
 <ol>
 <li>分别对Boolean、Integer、Long进行操作，提供能进行原子计算的类，<br>jdk8以后还提供了LongAdder、LongAccumulator等进行性能更好、更强大的计算，理论上可以用LongAdder代替AtomicInteger，具体在此博客中也有介绍LongAdder的实现原理。</li>
@@ -287,11 +296,11 @@
 <li>数组（Array）操作，针对数组的每个元素读写是线程安全的。</li>
 <li>Updater：对普通的变量进行原子性管理，而不用改变原来变量的定义。</li>
 </ol>
-<h1 id="CAS"><a href="#CAS" class="headerlink" title="CAS"></a>CAS</h1><p>cas即<code>compare and set</code>，在AtomicInteger里有这么一个方法：</p>
+<h1 id="CAS">2. CAS</h1><p>cas即<code>compare and set</code>，在AtomicInteger里有这么一个方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">compareAndSet</span><span class="params">(<span class="keyword">int</span> expect, <span class="keyword">int</span> update)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> unsafe.compareAndSwapInt(<span class="keyword">this</span>, valueOffset, expect, update);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>具体调用了<code>public final native boolean compareAndSwapInt(Object var1, long var2, int var4, int var5);</code>这个原生方法，需要传入对象本身、值在内存中的地址偏移、原值、改变后的值，即通过一组对比、修改的原子操作，在写入前读取原值，然后写入时如果值和原值不一致，就会更新失败，否则更新成功。</p>
-<h1 id="cas自旋"><a href="#cas自旋" class="headerlink" title="cas自旋"></a>cas自旋</h1><p>unsafe类有这么一个方法，也是AtomicInteger自增的实现：</p>
+<h1 id="cas自旋">3. cas自旋</h1><p>unsafe类有这么一个方法，也是AtomicInteger自增的实现：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getAndAddInt</span><span class="params">(Object var1, <span class="keyword">long</span> var2, <span class="keyword">int</span> var4)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> var5;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        var5 = <span class="keyword">this</span>.getIntVolatile(var1, var2);</span><br><span class="line">    &#125; <span class="keyword">while</span>(!<span class="keyword">this</span>.compareAndSwapInt(var1, var2, var5, var5 + var4));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> var5;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>如果while()里一直返回的cas结果为false，那么程序就继续尝试cas操作，这就是cas自旋</p>
@@ -361,6 +370,15 @@
       <a href="/589479039.html" title="[Java基础]synchronized关键字"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

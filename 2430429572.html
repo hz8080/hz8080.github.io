@@ -227,6 +227,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#加锁"><span class="toc-text">1. 加锁</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#公平锁和非公平锁的对比"><span class="toc-text">1.1. 公平锁和非公平锁的对比</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解锁"><span class="toc-text">2. 解锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#写在最后"><span class="toc-text">3. 写在最后</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Java基础-AQS与Lock" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -288,7 +297,7 @@
 <p>这里先剧透一下，AQS是个队列，那么队头线程理应拿到锁，这是公平锁的情况。而非公平锁的情况下，锁在刚释放的时候（state==0），队头线程可能被新来的插队，新来的插队失败，才乖乖地排到队尾，所以非公平锁并不是就没有队列的概念。   </p>
 </blockquote>
 <p>我们结合ReentrantLock来看AQS在Lock里的使用例子。</p>
-<h1 id="加锁"><a href="#加锁" class="headerlink" title="加锁"></a>加锁</h1><p>看ReentrantLock的构造方法如下：</p>
+<h1 id="加锁">1. 加锁</h1><p>看ReentrantLock的构造方法如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates an instance of &#123;<span class="doctag">@code</span> ReentrantLock&#125;.</span></span><br><span class="line"><span class="comment">     * This is equivalent to using &#123;<span class="doctag">@code</span> ReentrantLock(false)&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ReentrantLock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        sync = <span class="keyword">new</span> NonfairSync();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates an instance of &#123;<span class="doctag">@code</span> ReentrantLock&#125; with the</span></span><br><span class="line"><span class="comment">     * given fairness policy.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> fair &#123;<span class="doctag">@code</span> true&#125; if this lock should use a fair ordering policy</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ReentrantLock</span><span class="params">(<span class="keyword">boolean</span> fair)</span> </span>&#123;</span><br><span class="line">        sync = fair ? <span class="keyword">new</span> FairSync() : <span class="keyword">new</span> NonfairSync();</span><br><span class="line">    &#125;</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
 
 <p>很明显，ReentrantLock能构造公平或者不公平的锁，默认是非公平的。我们先看非公平锁的实现。</p>
@@ -372,11 +381,11 @@
 <p>这里再看下非公平锁和公平锁的有什么区别：直接上截图<br>这是非公平锁</p>
 <p><img src="/images/pasted-134.png" alt="upload successful"><br>这是公平锁</p>
 <p><img src="/images/pasted-135.png" alt="upload successful"><br>可以看出，非公平锁无论是在第一次尝试lock，还是到有机会tryAcquire时，上来就<code>compareAndSetState(0,1)</code>，完全不理会自己是不是真正的队头，而公平锁要客气地进行<code>hasQueuedPredecessors()</code>判断自己是不是真正的队头。</p>
-<h2 id="公平锁和非公平锁的对比"><a href="#公平锁和非公平锁的对比" class="headerlink" title="公平锁和非公平锁的对比"></a>公平锁和非公平锁的对比</h2><ol>
+<h2 id="公平锁和非公平锁的对比">1.1. 公平锁和非公平锁的对比</h2><ol>
 <li>公平锁保证各个线程可以拿到锁，但是这样大部分线程会经历一个挂起、唤醒的耗性能过程。非公平锁尽量减少这个耗性能的过程，但是不能保证业务的顺序。</li>
 <li>如果线程占有锁处理业务的时间远大于挂起、唤醒的时间耗费，那么使用公平锁可以增强可控性。</li>
 </ol>
-<h1 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h1><p>解锁就没分公平与不公平了，主要任务就是消除锁占有标识，唤醒挂起的线程。  </p>
+<h1 id="解锁">2. 解锁</h1><p>解锁就没分公平与不公平了，主要任务就是消除锁占有标识，唤醒挂起的线程。  </p>
 <p>接下来简单看看unlock()解除锁的方式，如果获取到了锁不释放，那自然就成了死锁，所以必须要释放，来看看它内部是如何释放的。同样从排它锁（ReentrantLock）中的unlock()方法开始：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unlock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    sync.release(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -393,7 +402,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">unparkSuccessor</span><span class="params">(Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If status is negative (i.e., possibly needing signal) try</span></span><br><span class="line"><span class="comment">     * to clear in anticipation of signalling.  It is OK if this</span></span><br><span class="line"><span class="comment">     * fails or if status is changed by waiting thread.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> ws = node.waitStatus;</span><br><span class="line">    <span class="keyword">if</span> (ws &lt; <span class="number">0</span>)</span><br><span class="line">        compareAndSetWaitStatus(node, ws, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Thread to unpark is held in successor, which is normally</span></span><br><span class="line"><span class="comment">     * just the next node.  But if cancelled or apparently null,</span></span><br><span class="line"><span class="comment">     * traverse backwards from tail to find the actual</span></span><br><span class="line"><span class="comment">     * non-cancelled successor.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Node s = node.next;</span><br><span class="line">    <span class="keyword">if</span> (s == <span class="keyword">null</span> || s.waitStatus &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        s = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">for</span> (Node t = tail; t != <span class="keyword">null</span> &amp;&amp; t != node; t = t.prev)</span><br><span class="line">            <span class="keyword">if</span> (t.waitStatus &lt;= <span class="number">0</span>)</span><br><span class="line">                s = t;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (s != <span class="keyword">null</span>)</span><br><span class="line">        LockSupport.unpark(s.thread);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><code>unparkSuccessor(h)</code>内部首先会发生的动作是获取head节点的next节点，如果获取到的节点不为空，则直接通过“LockSupport.unpark()”方法来释放对应的被挂起的线程(否则从后往前遍历，拿到最前的等待唤醒的线程节点，虽然我不知道这个否则怎进来 = =，待研究)，这样一来将会有一个节点唤醒后继续循环进一步尝试tryAcquire()方法来获取锁，但是也未必能完全获取到哦，因为此时也可能有一些外部的请求正好与之征用(非公平锁)，而且还奇迹般的成功了，那这个线程的运气就有点悲剧了，不过通常乐观认为不会每一次都那么悲剧。</p>
-<h1 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h1><p>有些地方还没弄懂，不过对AQS的结构，ReentrantLock是怎么利用AQS来做锁的有了一个大致的认识。</p>
+<h1 id="写在最后">3. 写在最后</h1><p>有些地方还没弄懂，不过对AQS的结构，ReentrantLock是怎么利用AQS来做锁的有了一个大致的认识。</p>
 
       
     </div>
@@ -460,6 +469,15 @@
       <a href="/1213316024.html" title="[Java基础]CAS与Atomic"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

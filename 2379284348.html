@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#需求背景"><span class="toc-text">1. 需求背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#整体流程"><span class="toc-text">2. 整体流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#服务端"><span class="toc-text">3. 服务端</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#客户端"><span class="toc-text">4. 客户端</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结语"><span class="toc-text">5. 结语</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-FCM-用FCM做一个跨设备消息同步工具" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -277,7 +286,7 @@
         <p>Fcm真是个好东西，希望你也有。</p>
 <a id="more"></a>
 
-<h1 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h1><p>作为一个穷人，手持不了iPhone(滑稽)，当同时使用着macOS、windows、安卓三个平台时，我面临着几个问题：</p>
+<h1 id="需求背景">1. 需求背景</h1><p>作为一个穷人，手持不了iPhone(滑稽)，当同时使用着macOS、windows、安卓三个平台时，我面临着几个问题：</p>
 <ol>
 <li>传文件。对于传文件，有许多方案，我偏向于用Feem或者共享文件夹，都是局域网传输，又快又不用经过第三方服务器。</li>
 <li>复制文本。iPhone和mac之间有通用剪切板，win10和iPhone、安卓之间有微软小娜。</li>
@@ -285,7 +294,7 @@
 <li>短信验证码。电脑上用短信验证码场景并不是很多，不过我们公司的线上服务器登录时需要短信验证码的二次验证，这时候去解锁手机、看验证码、一个一个输入终端。。。妈蛋很烦。</li>
 </ol>
 <p>于是找了一堆，AirDroid、Pushbullet等等，在到处讲隐私的今天，我觉得把自己的剪切板、短信、通知就这么发送给人家总是有点不安（不过用fcm也是把数据给号称‘不作恶’口号的谷歌）。偶然看到了剪纸云，是个收费软件，不过看了简介说是用FCM做的，找了下FCM的接入指北，自己做一个同步工具。</p>
-<h1 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h1><p><img src="/images/pasted-174.png" alt="upload successful"></p>
+<h1 id="整体流程">2. 整体流程</h1><p><img src="/images/pasted-174.png" alt="upload successful"></p>
 <p>数据的流向如图，终端把要同步的数据发到自己的应用服务器，应用服务器载把数据发到FCM，交由FCM推送到设备组。</p>
 <p>对于每一台设备，当应用与FCM建立起连接后可以得到一个fcm token，这个token就是这台设备这个应用的id了。</p>
 <p>至于设备组id，我是用Firebase-Auth的userId作为设备组id的。</p>
@@ -330,7 +339,7 @@
 <td>分片的标识，8位整数，高位起第一位表示是否分片，第二位表示是否还有分片，余下6位表示分片顺序</td>
 </tr>
 </tbody></table>
-<h1 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h1><p>服务端用go写的，框架使用gin，数据库用redis。</p>
+<h1 id="服务端">3. 服务端</h1><p>服务端用go写的，框架使用gin，数据库用redis。</p>
 <p>主要维护两个关系。</p>
 <ol>
 <li>设备id到设备组id的关系</li>
@@ -353,7 +362,7 @@
 <li>接下来在分片mark高位起低6位设置好分片顺序，只要简单的0，1，2..这样就好了（不同于ip分片，ip分片使用的是数据偏移量作为位置索引）。如果是最后一片分片，mark高位起第二位要置1表示没有更多分片。</li>
 </ol>
 <p>接下来利用sdk推送到fcm就好了。应用服务器的接入fcm有多种方式，文档真是傻瓜式教程。</p>
-<h1 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h1><p>客户端写Chrome拓展和android。<br>主要流程是</p>
+<h1 id="客户端">4. 客户端</h1><p>客户端写Chrome拓展和android。<br>主要流程是</p>
 <ol>
 <li>根据接收到的数据类型处理，<br>（1）通知直接显示，<br>（2）短信显示并且检验有没有验证码，有则将验证码提取放入剪切板，<br>（3）剪切板进行分片判断</li>
 <li>如果不是分片，直接放入剪切板，否则进行重组。</li>
@@ -381,7 +390,7 @@
 </tbody></table>
 <p>当第一个分片到来时，将分片time作为key，初始化一个FragHold。每次到达一个分片，FragHold.count加1，当最后一个分片到来，FragHold.length可以确定。如果FragHold的count == length，那么分片重组完成，直接对数组一个join操作得到一篇完整的千字文，又可以愉快地ctrl cv了。</p>
 <p>此外起一个定时任务，不断将全局哈希表里过期的FragHold剔除，毕竟这个是没有超时重传的，一旦丢了就再复制一次呗。</p>
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>这里要说一下在设备组管理遇到的问题，一开始我也是用fcm的设备组管理，导致发送方会接收到自己发送的消息。这个本来无所谓，根据消息的fcm_token判断一下，如果等于自己的fcm_token，就不处理。但是js客户端是用service worker来处理，当service worker重新唤醒时，因为查询indexedDB和调用fcm接口都要在第二轮事件循环才能拿到自己的fcm_token, 而service worker被唤醒后的第一个事件循环就要处理消息了，所以第一次被唤醒时是不知道自己fcm_token的。</p>
+<h1 id="结语">5. 结语</h1><p>这里要说一下在设备组管理遇到的问题，一开始我也是用fcm的设备组管理，导致发送方会接收到自己发送的消息。这个本来无所谓，根据消息的fcm_token判断一下，如果等于自己的fcm_token，就不处理。但是js客户端是用service worker来处理，当service worker重新唤醒时，因为查询indexedDB和调用fcm接口都要在第二轮事件循环才能拿到自己的fcm_token, 而service worker被唤醒后的第一个事件循环就要处理消息了，所以第一次被唤醒时是不知道自己fcm_token的。</p>
 <p>还有一点，fcm js要求你必须对收到的push弹窗，否则他会帮你弹窗，有知道怎么解决的告诉我一下。。。</p>
 
       
@@ -449,6 +458,15 @@
       <a href="/2436052280.html" title="[Dubbo]Dubbo SPI 机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

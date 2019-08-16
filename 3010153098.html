@@ -18,18 +18,18 @@
   
   
   <title>[NIO]linux的I/O多路复用 | 土川的自留地</title>
-  <meta name="description" content="前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文件夹。">
+  <meta name="description" content="1. 前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文">
 <meta name="keywords" content="NIO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[NIO]linux的I&#x2F;O多路复用">
 <meta property="og:url" content="https://htchz.cc/3010153098.html">
 <meta property="og:site_name" content="土川的自留地">
-<meta property="og:description" content="前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文件夹。">
+<meta property="og:description" content="1. 前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:updated_time" content="2019-02-01T05:05:56.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[NIO]linux的I&#x2F;O多路复用">
-<meta name="twitter:description" content="前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文件夹。">
+<meta name="twitter:description" content="1. 前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/3010153098.html">
   
@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#接口"><span class="toc-text">2. 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#i-o多路复用原理"><span class="toc-text">2.1. i/o多路复用原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#select"><span class="toc-text">2.2. select</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#poll"><span class="toc-text">2.3. poll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#epoll"><span class="toc-text">2.4. epoll</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#java-nio"><span class="toc-text">3. java nio</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结束语"><span class="toc-text">4. 结束语</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">5. 参考</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-NIO-linux的I-O多路复用" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -272,13 +281,13 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。</p>
+        <h1 id="前言">1. 前言</h1><p>上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。</p>
 <blockquote>
 <p>内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是<strong>非负整数</strong>。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入<code>/proc</code>目录可以看到许多代表文件描述符的文件夹。</p>
 </blockquote>
 <p>linux i/o多路复用的系统调用接口有三种，分别是    <code>select</code>,<code>poll</code>,<code>epoll</code>。</p>
-<h1 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h1><p>作为一个学java的，了解一下java底层调用的函数，还是挺有助于理解的。</p>
-<h2 id="i-o多路复用原理"><a href="#i-o多路复用原理" class="headerlink" title="i/o多路复用原理"></a>i/o多路复用原理</h2><p>linux(2.6+)内核的事件wakeup callback机制，是linux i/o多路复用的原理。内核管理一个process的睡眠队列，当socket事件发生的时候，唤醒队列的process，调用callback函数完成通知。总体上会涉及两大逻辑：（1）睡眠等待逻辑；（2）唤醒逻辑。</p>
+<h1 id="接口">2. 接口</h1><p>作为一个学java的，了解一下java底层调用的函数，还是挺有助于理解的。</p>
+<h2 id="i-o多路复用原理">2.1. i/o多路复用原理</h2><p>linux(2.6+)内核的事件wakeup callback机制，是linux i/o多路复用的原理。内核管理一个process的睡眠队列，当socket事件发生的时候，唤醒队列的process，调用callback函数完成通知。总体上会涉及两大逻辑：（1）睡眠等待逻辑；（2）唤醒逻辑。</p>
 <p>1.睡眠等待逻辑：涉及select、poll、epoll_wait的阻塞等待逻辑</p>
 <ul>
 <li>select、poll、epoll_wait陷入内核，判断监控的socket是否有关心的事件发生了，如果没，则为当前process构建一个wait_entry节点，然后插入到监控socket的sleep_list</li>
@@ -291,7 +300,7 @@
 <li>直到完成队列的遍历或遇到某个wait_entry节点是排他的才停止。</li>
 <li>一般情况下callback包含两个逻辑：1.wait_entry自定义的私有逻辑；2.唤醒的公共逻辑，主要用于将该wait_entry的process放入CPU的就绪队列，让CPU随后可以调度其执行。</li>
 </ul>
-<h2 id="select"><a href="#select" class="headerlink" title="select"></a>select</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> max_fd, fd_set *readset, fd_set *writeset, fd_set *exceptset, struct timeval *timeout)</span></span></span><br><span class="line"><span class="function"><span class="title">FD_ZERO</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>   <span class="comment">//清空集合</span></span></span><br><span class="line"><span class="function"><span class="title">FD_SET</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>    <span class="comment">//将给定的描述符加入集合</span></span></span><br><span class="line"><span class="function"><span class="title">FD_ISSET</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>  <span class="comment">//将给定的描述符从文件中删除  </span></span></span><br><span class="line"><span class="function"><span class="title">FD_CLR</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>    <span class="comment">//判断指定描述符是否在集合中</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="select">2.2. select</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> max_fd, fd_set *readset, fd_set *writeset, fd_set *exceptset, struct timeval *timeout)</span></span></span><br><span class="line"><span class="function"><span class="title">FD_ZERO</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>   <span class="comment">//清空集合</span></span></span><br><span class="line"><span class="function"><span class="title">FD_SET</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>    <span class="comment">//将给定的描述符加入集合</span></span></span><br><span class="line"><span class="function"><span class="title">FD_ISSET</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>  <span class="comment">//将给定的描述符从文件中删除  </span></span></span><br><span class="line"><span class="function"><span class="title">FD_CLR</span><span class="params">(<span class="keyword">int</span> fd, fd_set* fds)</span>    <span class="comment">//判断指定描述符是否在集合中</span></span></span><br></pre></td></tr></table></figure>
 
 <p>select 方法的第一个参数max_fd指待测试的fd（fd即文件描述符，一个socket会有一个文件描述符）个数，它的值是待测试的最大文件描述符加1，文件描述符从0开始到max_fd-1都将被测试。中间三个参数readset、writeset和exceptset指定要让内核测试读、写和异常条件的fd集合，如果不需要测试的可以设置为NULL。</p>
 <p>select被调用的时候，被监控的<code>readset</code>(假设对socket的读事件感兴趣)会从用户空间复制到内核空间，然后遍历监听的socket，如果在超时或者有一个或多个socket产生了读事件，那么select唤醒线程，注意这里只是<strong>唤醒</strong>，并没有返回就绪的fd，接下来线程要再次遍历<code>readset</code>，收集可读事件。</p>
@@ -300,10 +309,10 @@
 <li>监听的socket数量有限，为了减少fd拷贝的性能损耗，限定了1024个文件描述符</li>
 <li>线程被唤醒的时候，需要<strong>再次</strong>遍历fd列表。</li>
 </ul>
-<h2 id="poll"><a href="#poll" class="headerlink" title="poll"></a>poll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd fds[], <span class="keyword">nfds_t</span> nfds, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> &#123;</span></span><br><span class="line">        <span class="keyword">int</span> fd;                         <span class="comment">// 需要被检测或选择的文件描述符</span></span><br><span class="line">        <span class="keyword">short</span> events;                   <span class="comment">// 对文件描述符fd上感兴趣的事件</span></span><br><span class="line">        <span class="keyword">short</span> revents;                  <span class="comment">// 文件描述符fd上当前实际发生的事件*/</span></span><br><span class="line">&#125; <span class="keyword">pollfd_t</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="poll">2.3. poll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd fds[], <span class="keyword">nfds_t</span> nfds, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> &#123;</span></span><br><span class="line">        <span class="keyword">int</span> fd;                         <span class="comment">// 需要被检测或选择的文件描述符</span></span><br><span class="line">        <span class="keyword">short</span> events;                   <span class="comment">// 对文件描述符fd上感兴趣的事件</span></span><br><span class="line">        <span class="keyword">short</span> revents;                  <span class="comment">// 文件描述符fd上当前实际发生的事件*/</span></span><br><span class="line">&#125; <span class="keyword">pollfd_t</span>;</span><br></pre></td></tr></table></figure>
 
 <p><code>poll</code>换了个数据结构，解决了<code>select</code>其中一个问题：监听的数量有限。但实际上并有解决拷贝的性能损耗和需要再次遍历fd列表获取就绪事件。</p>
-<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_create</span><span class="params">(<span class="keyword">int</span> size)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_ctl</span><span class="params">(<span class="keyword">int</span> epfd, <span class="keyword">int</span> op, <span class="keyword">int</span> fd, struct epoll_event *event)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="keyword">int</span> epfd, struct epoll_event * events, <span class="keyword">int</span> maxevents, <span class="keyword">int</span> timeout)</span></span>;</span><br></pre></td></tr></table></figure>
+<h2 id="epoll">2.4. epoll</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_create</span><span class="params">(<span class="keyword">int</span> size)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_ctl</span><span class="params">(<span class="keyword">int</span> epfd, <span class="keyword">int</span> op, <span class="keyword">int</span> fd, struct epoll_event *event)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="keyword">int</span> epfd, struct epoll_event * events, <span class="keyword">int</span> maxevents, <span class="keyword">int</span> timeout)</span></span>;</span><br></pre></td></tr></table></figure>
 
 <p>epoll不是一个方法，而是由三个函数组成;</p>
 <ol>
@@ -321,10 +330,10 @@
 </ol>
 <p>epoll对文件描述符的操作有两种模式：LT(level trigger，水平触发)和ET(Edge trigger，边缘触发)。</p>
 <p>LT:这次事件没处理，下次还告诉你。<br>ET:这次事件没处理，下次不告诉你。</p>
-<h1 id="java-nio"><a href="#java-nio" class="headerlink" title="java nio"></a>java nio</h1><p>在linux环境下，java nio 底层调用是epoll，这里有个博主写了一个<a href="https://github.com/code4wt/toyhttpd/blob/master/epoll_multiprocess_server.c" target="_blank" rel="noopener">基于epoll实现的web服务器</a>，在linux下编译完成后，可以浏览器访问8080端口，观察输出。</p>
+<h1 id="java-nio">3. java nio</h1><p>在linux环境下，java nio 底层调用是epoll，这里有个博主写了一个<a href="https://github.com/code4wt/toyhttpd/blob/master/epoll_multiprocess_server.c" target="_blank" rel="noopener">基于epoll实现的web服务器</a>，在linux下编译完成后，可以浏览器访问8080端口，观察输出。</p>
 <p>另外，java使用的模式是水平触发。<a href="https://www.zhihu.com/question/22524908" target="_blank" rel="noopener">传送门</a></p>
-<h1 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h1><p>作为linux门外汉，了解的不是很深入。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<h1 id="结束语">4. 结束语</h1><p>作为linux门外汉，了解的不是很深入。</p>
+<h1 id="参考">5. 参考</h1><ul>
 <li><a href="https://cloud.tencent.com/developer/article/1005481" target="_blank" rel="noopener">大话 Select、Poll、Epoll</a></li>
 <li><a href="http://www.tianxiaobo.com/2018/03/02/%E5%9F%BA%E4%BA%8Eepoll%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84web%E6%9C%8D%E5%8A%A1%E5%99%A8/" target="_blank" rel="noopener">基于epoll实现简单的web服务器</a></li>
 </ul>
@@ -394,6 +403,15 @@
       <a href="/2990610001.html" title="[NIO]五个I/O模型"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

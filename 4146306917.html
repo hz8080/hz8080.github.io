@@ -18,18 +18,18 @@
   
   
   <title>[Java基础]BitSet | 土川的自留地</title>
-  <meta name="description" content="BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的初始值">
+  <meta name="description" content="1. BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的">
 <meta name="keywords" content="位图">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[Java基础]BitSet">
 <meta property="og:url" content="https://htchz.cc/4146306917.html">
 <meta property="og:site_name" content="土川的自留地">
-<meta property="og:description" content="BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的初始值">
+<meta property="og:description" content="1. BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:updated_time" content="2018-10-22T03:34:46.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Java基础]BitSet">
-<meta name="twitter:description" content="BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的初始值">
+<meta name="twitter:description" content="1. BitSet类大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。  此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。默认情况下，set 中所有位的">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/4146306917.html">
   
@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BitSet类"><span class="toc-text">1. BitSet类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#构造函数"><span class="toc-text">2. 构造函数:</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一些方法"><span class="toc-text">3. 一些方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解释"><span class="toc-text">4. 解释</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Java基础-BitSet" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -265,19 +274,19 @@
 		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.5k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 7(分)</span>
 	
 
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h1 id="BitSet类"><a href="#BitSet类" class="headerlink" title="BitSet类"></a>BitSet类</h1><p>大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。 </p>
+        <h1 id="BitSet类">1. BitSet类</h1><p>大小可动态改变, 取值为true或false的位集合。用于表示一组布尔标志。 </p>
 <p>此类实现了一个按需增长的位向量。位 set 的每个组件都有一个 boolean 值。用非负的整数将 BitSet 的位编入索引。可以对每个编入索引的位进行测试、设置或者清除。通过逻辑与、逻辑或和逻辑异或操作，可以使用一个 BitSet 修改另一个 BitSet 的内容。<br>默认情况下，set 中所有位的初始值都是 false。<br>每个位 set 都有一个当前大小，也就是该位 set 当前所用空间的位数。注意，这个大小与位 set 的实现有关，所以它可能随实现的不同而更改。位 set 的长度与位 set 的逻辑长度有关，并且是与实现无关而定义的。<br>除非另行说明，否则将 null 参数传递给 BitSet 中的任何方法都将导致 NullPointerException。 在没有外部同步的情况下，多个线程操作一个 BitSet 是不安全的。</p>
-<h1 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数:"></a>构造函数:</h1><p>BitSet() or BitSet(int nbits)</p>
-<h1 id="一些方法"><a href="#一些方法" class="headerlink" title="一些方法"></a>一些方法</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> pos)</span>: 位置pos的字位设置为<span class="keyword">true</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> bitIndex, <span class="keyword">boolean</span> value)</span> 将指定索引处的位设置为指定的值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">(<span class="keyword">int</span> pos)</span>: 位置pos的字位设置为<span class="keyword">false</span>。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> : 将此 BitSet 中的所有位设置为 <span class="keyword">false</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">cardinality</span><span class="params">()</span> 返回此 BitSet 中设置为 <span class="keyword">true</span> 的位数。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> pos)</span>: 返回位置是pos的字位值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">and</span><span class="params">(BitSet other)</span>: other同该字位集进行与操作，结果作为该字位集的新值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">or</span><span class="params">(BitSet other)</span>: other同该字位集进行或操作，结果作为该字位集的新值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">xor</span><span class="params">(BitSet other)</span>: other同该字位集进行异或操作，结果作为该字位集的新值。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">andNot</span><span class="params">(BitSet set)</span> 清除此 BitSet 中所有的位,set - 用来屏蔽此 BitSet 的 BitSet</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span>: 返回此 BitSet 表示位值时实际使用空间的位数。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">length</span><span class="params">()</span> 返回此 BitSet 的“逻辑大小”：BitSet 中最高设置位的索引加 1。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span>: 返回该集合Hash 码， 这个码同集合中的字位值有关。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object other)</span>: 如果other中的字位同集合中的字位相同，返回<span class="keyword">true</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">clone</span><span class="params">()</span> 克隆此 BitSet，生成一个与之相等的新 BitSet。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> 返回此位 set 的字符串表示形式。</span></span><br></pre></td></tr></table></figure>
+<h1 id="构造函数">2. 构造函数:</h1><p>BitSet() or BitSet(int nbits)</p>
+<h1 id="一些方法">3. 一些方法</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> pos)</span>: 位置pos的字位设置为<span class="keyword">true</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> bitIndex, <span class="keyword">boolean</span> value)</span> 将指定索引处的位设置为指定的值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">(<span class="keyword">int</span> pos)</span>: 位置pos的字位设置为<span class="keyword">false</span>。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> : 将此 BitSet 中的所有位设置为 <span class="keyword">false</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">cardinality</span><span class="params">()</span> 返回此 BitSet 中设置为 <span class="keyword">true</span> 的位数。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> pos)</span>: 返回位置是pos的字位值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">and</span><span class="params">(BitSet other)</span>: other同该字位集进行与操作，结果作为该字位集的新值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">or</span><span class="params">(BitSet other)</span>: other同该字位集进行或操作，结果作为该字位集的新值。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">xor</span><span class="params">(BitSet other)</span>: other同该字位集进行异或操作，结果作为该字位集的新值。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">andNot</span><span class="params">(BitSet set)</span> 清除此 BitSet 中所有的位,set - 用来屏蔽此 BitSet 的 BitSet</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span>: 返回此 BitSet 表示位值时实际使用空间的位数。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">length</span><span class="params">()</span> 返回此 BitSet 的“逻辑大小”：BitSet 中最高设置位的索引加 1。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span>: 返回该集合Hash 码， 这个码同集合中的字位值有关。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object other)</span>: 如果other中的字位同集合中的字位相同，返回<span class="keyword">true</span>。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">clone</span><span class="params">()</span> 克隆此 BitSet，生成一个与之相等的新 BitSet。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> 返回此位 set 的字符串表示形式。</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h1><p>Java.util.BitSet可以按位存储。<br>计算机中一个字节（byte）占8位（bit），我们java中数据至少按字节存储的，<br>比如一个int占4个字节。<br>如果遇到大的数据量，这样必然会需要很大存储空间和内存。<br>如何减少数据占用存储空间和内存可以用算法解决。<br>java.util.BitSet就提供了这样的算法。<br>比如有一堆数字，需要存储，source=[3,5,6,9]<br>用int就需要4*4个字节。<br>java.util.BitSet可以存true/false。<br>如果用java.util.BitSet，则会少很多，其原理是：</p>
+<h1 id="解释">4. 解释</h1><p>Java.util.BitSet可以按位存储。<br>计算机中一个字节（byte）占8位（bit），我们java中数据至少按字节存储的，<br>比如一个int占4个字节。<br>如果遇到大的数据量，这样必然会需要很大存储空间和内存。<br>如何减少数据占用存储空间和内存可以用算法解决。<br>java.util.BitSet就提供了这样的算法。<br>比如有一堆数字，需要存储，source=[3,5,6,9]<br>用int就需要4*4个字节。<br>java.util.BitSet可以存true/false。<br>如果用java.util.BitSet，则会少很多，其原理是：</p>
 <ol>
 <li>先找出数据中最大值maxvalue=9</li>
 <li>声明一个BitSet bs,它的size是maxvalue+1=10</li>
@@ -377,6 +386,15 @@ bm1.size()--64
       <a href="/45692816.html" title="[多线程]一个线程饥饿死锁的例子"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#场景"><span class="toc-text">1. 场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解决方法"><span class="toc-text">2. 解决方法</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-碧油鸡-使用HttpClient3的坑" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/589437945.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 175(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 177(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -277,9 +286,9 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>使用阿里开源配置中心的diamond-sdk时需要登录配置中心才有权限进行操作。diamond-sdk是使用HttpClient3来进行信息传输的，于是在进行配置的操作之前客户端会先模拟登录获得session。然而在接下来的操作却一直报”未登录”之类的提示。</p>
+<h1 id="场景">1. 场景</h1><p>使用阿里开源配置中心的diamond-sdk时需要登录配置中心才有权限进行操作。diamond-sdk是使用HttpClient3来进行信息传输的，于是在进行配置的操作之前客户端会先模拟登录获得session。然而在接下来的操作却一直报”未登录”之类的提示。</p>
 <p>debug大法后发现<code>Cookie</code>对象好像<code>id</code>一直在变，返回的<code>jsessionid</code>也没保存。一波探索发现<code>HttpClient3</code>需要手动设置cookie策略。</p>
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p><code>HttpClient3</code> 默认的cookie策略是每次新建一个<code>Cookie</code>对象，复用Cookie的话，要进行如下设置。</p>
+<h1 id="解决方法">2. 解决方法</h1><p><code>HttpClient3</code> 默认的cookie策略是每次新建一个<code>Cookie</code>对象，复用Cookie的话，要进行如下设置。</p>
 <pre><code>client.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY)</code></pre><p>(完)</p>
 
       
@@ -347,6 +356,15 @@
       <a href="/3244702836.html" title="[Spring]Spring之循环依赖"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

@@ -237,6 +237,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#启用G1"><span class="toc-text">1. 启用G1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#物理空间分代取消"><span class="toc-text">2. 物理空间分代取消</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#对象分配策略"><span class="toc-text">3. 对象分配策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Minor-GC和Mix-GC"><span class="toc-text">4. Minor GC和Mix GC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Minor-GC"><span class="toc-text">4.1. Minor GC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mix-GC"><span class="toc-text">4.2. Mix GC</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#三色标记算法"><span class="toc-text">5. 三色标记算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#G1调优实践"><span class="toc-text">6. G1调优实践</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-GC那些事-八-G1" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -291,17 +300,17 @@
 </blockquote>
 <a id="more"></a>
 <p>参考<a href="http://blog.jobbole.com/109170/" target="_blank" rel="noopener">深入理解 Java G1 垃圾收集器</a></p>
-<h1 id="启用G1"><a href="#启用G1" class="headerlink" title="启用G1"></a>启用G1</h1><p>在启动参数加上下面配置</p>
+<h1 id="启用G1">1. 启用G1</h1><p>在启动参数加上下面配置</p>
 <pre><code>-XX:+UseG1GC -Xmx32g -XX:MaxGCPauseMillis=200</code></pre><blockquote>
 <p>其中-XX:+UseG1GC为开启G1垃圾收集器，-Xmx32g 设计堆内存的最大内存为32G，-XX:MaxGCPauseMillis=200设置GC的最大暂停时间为200ms。如果我们需要调优，在内存大小一定的情况下，我们只需要修改最大暂停时间即可。</p>
 </blockquote>
-<h1 id="物理空间分代取消"><a href="#物理空间分代取消" class="headerlink" title="物理空间分代取消"></a>物理空间分代取消</h1><p>分代现在只存在概念上，每一块内存可以设置为老年代或者新生代。</p>
+<h1 id="物理空间分代取消">2. 物理空间分代取消</h1><p>分代现在只存在概念上，每一块内存可以设置为老年代或者新生代。</p>
 <p><img src="/images/pasted-110.png" alt="upload successful"><br>取而代之的是，G1算法将堆划分为若干个区域（Region），它仍然属于分代收集器。不过，这些区域的一部分包含新生代，新生代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到老年代或者Survivor空间。老年代也分成很多区域，G1收集器通过将对象从<code>一个区域复制到另外一个区域</code>，完成了清理工作。这就意味着，在正常的处理过程中，G1完成了堆的压缩（至少是部分堆的压缩），这样也就不会有cms内存碎片问题的存在了。</p>
 <p><img src="/images/pasted-111.png" alt="upload successful"><br>在G1中，还有一种特殊的区域，叫Humongous区域。 如果一个对象占用的空间超过了分区容量50%以上，G1收集器就认为这是一个巨型对象。这些巨型对象，默认直接会被分配在年老代，但是如果它是一个短期存在的巨型对象，就会对垃圾收集器造成负面影响。为了解决这个问题，G1划分了一个Humongous区，它用来专门存放巨型对象。如果一个H区装不下一个巨型对象，那么G1会寻找连续的H分区来存储。为了能找到连续的H区，有时候不得不启动Full GC。</p>
 <blockquote>
 <p>在java 8中，永久代也移动到了普通的堆内存空间中，改为元空间。</p>
 </blockquote>
-<h1 id="对象分配策略"><a href="#对象分配策略" class="headerlink" title="对象分配策略"></a>对象分配策略</h1><p>说起大对象的分配，我们不得不谈谈对象的分配策略。它分为3个阶段：</p>
+<h1 id="对象分配策略">3. 对象分配策略</h1><p>说起大对象的分配，我们不得不谈谈对象的分配策略。它分为3个阶段：</p>
 <ul>
 <li>TLAB(Thread Local Allocation Buffer)线程本地分配缓冲区</li>
 <li>Eden区中分配</li>
@@ -309,7 +318,7 @@
 </ul>
 <p>TLAB为线程本地分配缓冲区，它的目的为了使对象尽可能快的分配出来。如果对象在一个共享的空间中分配，我们需要采用一些同步机制来管理这些空间内的空闲空间指针。在Eden空间中，每一个线程都有一个固定的分区用于分配对象，即一个TLAB。分配对象时，线程之间不再需要进行任何的同步。</p>
 <p>对TLAB空间中无法分配的对象，JVM会尝试在Eden空间中进行分配。如果Eden空间无法容纳该对象，就只能在老年代中进行分配空间。</p>
-<h1 id="Minor-GC和Mix-GC"><a href="#Minor-GC和Mix-GC" class="headerlink" title="Minor GC和Mix GC"></a>Minor GC和Mix GC</h1><h2 id="Minor-GC"><a href="#Minor-GC" class="headerlink" title="Minor GC"></a>Minor GC</h2><p>Minor GC主要是对Eden区进行GC，它在Eden空间耗尽时会被触发。在这种情况下，Eden空间的数据移动到Survivor空间中，如果Survivor空间不够，Eden空间的部分数据会直接晋升到年老代空间。Survivor区的数据移动到新的Survivor区中，也有部分数据晋升到老年代空间中。最终Eden空间的数据为空，GC停止工作，应用线程继续执行。<br><img src="/images/pasted-112.png" alt="upload successful"></p>
+<h1 id="Minor-GC和Mix-GC">4. Minor GC和Mix GC</h1><h2 id="Minor-GC">4.1. Minor GC</h2><p>Minor GC主要是对Eden区进行GC，它在Eden空间耗尽时会被触发。在这种情况下，Eden空间的数据移动到Survivor空间中，如果Survivor空间不够，Eden空间的部分数据会直接晋升到年老代空间。Survivor区的数据移动到新的Survivor区中，也有部分数据晋升到老年代空间中。最终Eden空间的数据为空，GC停止工作，应用线程继续执行。<br><img src="/images/pasted-112.png" alt="upload successful"></p>
 <p><img src="/images/pasted-113.png" alt="upload successful"><br>这时，我们需要考虑一个问题，如果仅仅GC 新生代对象，我们如何找到所有的根对象呢？ 老年代的所有对象都是根么？那这样扫描下来会耗费大量的时间。于是，G1引进了RSet的概念。它的全称是Remembered Set，作用是跟踪指向某个heap区内的对象引用。<br><img src="/images/pasted-114.png" alt="upload successful"><br>在CMS中，也有RSet的概念，在老年代中有一块区域用来记录指向新生代的引用。这是一种point-out，在进行Minor GC时，扫描根时，仅仅需要扫描这一块区域，而不需要扫描整个老年代。</p>
 <p>但在G1中，并没有使用point-out，这是由于一个分区太小，分区数量太多，如果是用point-out的话，会造成大量的扫描浪费，因为每次只处理一小部分分区，有些根本不需要GC的分区引用也扫描了。于是G1中使用point-in来解决。point-in的意思是哪些分区引用了当前分区中的对象。这样，仅仅将这些对象当做根来扫描就避免了无效的扫描。由于新生代有多个，那么我们需要在新生代之间记录引用吗？这是不必要的，原因在于每次GC时，所有新生代都会被扫描，所以只需要记录老年代到新生代之间的引用即可。</p>
 <p>需要注意的是，如果引用的对象很多，赋值器需要对每个引用做处理，赋值器开销会很大，为了解决赋值器开销这个问题，在G1 中又引入了另外一个概念，卡表（Card Table）。一个Card Table将一个分区在逻辑上划分为固定大小的连续区域，每个区域称之为卡。卡通常较小，介于128到512字节之间。Card Table通常为字节数组，由Card的索引（即数组下标）来标识每个分区的空间地址。默认情况下，每个卡都未被引用。当一个地址空间被引用时，这个地址空间对应的数组索引的值被标记为”0″，即标记为脏被引用，此外RSet也将这个数组下标记录下来。一般情况下，这个RSet其实是一个Hash Table，Key是别的Region的起始地址，Value是一个集合，里面的元素是Card Table的Index。</p>
@@ -321,7 +330,7 @@
 <li>阶段4：对象拷贝<br>拷贝存活的对象到survivor/old区域</li>
 <li>阶段5：处理引用队列<br>软引用，弱引用，虚引用处理</li>
 </ul>
-<h2 id="Mix-GC"><a href="#Mix-GC" class="headerlink" title="Mix GC"></a>Mix GC</h2><p>Mix GC不仅进行正常的新生代垃圾收集，同时也回收部分后台扫描线程标记的老年代分区。</p>
+<h2 id="Mix-GC">4.2. Mix GC</h2><p>Mix GC不仅进行正常的新生代垃圾收集，同时也回收部分后台扫描线程标记的老年代分区。</p>
 <p>它的GC步骤分2步：</p>
 <ol>
 <li>全局并发标记（global concurrent marking）</li>
@@ -336,7 +345,7 @@
 <li>最终标记（Remark，STW）<br>该阶段是 STW 回收，帮助完成标记周期。G1 GC 清空 SATB 缓冲区，跟踪未被访问的存活对象，并执行引用处理。</li>
 <li>清除垃圾（Cleanup，STW）<br>在这个最后阶段，G1 GC 执行统计和 RSet 净化的 STW 操作。在统计期间，G1 GC 会识别完全空闲的区域和可供进行混合垃圾回收的区域。清理阶段在将空白区域重置并返回到空闲列表时为部分并发。</li>
 </ul>
-<h1 id="三色标记算法"><a href="#三色标记算法" class="headerlink" title="三色标记算法"></a>三色标记算法</h1><p>提到并发标记，我们不得不了解并发标记的三色标记算法。它是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。 首先，我们将对象分成三种类型的。</p>
+<h1 id="三色标记算法">5. 三色标记算法</h1><p>提到并发标记，我们不得不了解并发标记的三色标记算法。它是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。 首先，我们将对象分成三种类型的。</p>
 <ul>
 <li>黑色:根对象，或者该对象与它的子对象都被扫描</li>
 <li>灰色:对象本身被扫描,但还没扫描完该对象中的子对象</li>
@@ -362,7 +371,7 @@ B.c=null</code></pre><p>这样，对象的状态图变成如下情形：<br><img
 <p>2，在并发标记的时候所有被改变的对象入队（在write barrier里把所有旧的引用所指向的对象都变成非白的，比如C变成非白的）</p>
 <p>3，C如果是游离的垃圾，将在下次被收集，总之这一次不会被清理。</p>
 <p>这样，G1到现在可以知道哪些老的分区可回收垃圾最多。 当全局并发标记完成后，在某个时刻，就开始了Mix GC。这些垃圾回收被称作“混合式”是因为他们不仅仅进行正常的新生代垃圾收集，同时也回收部分后台扫描线程标记的分区。混合式垃圾收集如下图：<br><img src="/images/pasted-121.png" alt="upload successful"><br>混合式GC也是采用的复制的清理策略，当GC完成后，会重新释放空间。<br><img src="/images/pasted-122.png" alt="upload successful"></p>
-<h1 id="G1调优实践"><a href="#G1调优实践" class="headerlink" title="G1调优实践"></a>G1调优实践</h1><p>未完…</p>
+<h1 id="G1调优实践">6. G1调优实践</h1><p>未完…</p>
 
       
     </div>
@@ -429,6 +438,15 @@ B.c=null</code></pre><p>这样，对象的状态图变成如下情形：<br><img
       <a href="/4242301031.html" title="[JVM]GC那些事(七)CMS"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

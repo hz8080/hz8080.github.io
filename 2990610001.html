@@ -18,13 +18,13 @@
   
   
   <title>[NIO]五个I/O模型 | 土川的自留地</title>
-  <meta name="description" content="前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 linux的io模型Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，需要阻塞数据到达，数据">
+  <meta name="description" content="1. 前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 2. linux的io模型2.1. Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，">
 <meta name="keywords" content="NIO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[NIO]五个I&#x2F;O模型">
 <meta property="og:url" content="https://htchz.cc/2990610001.html">
 <meta property="og:site_name" content="土川的自留地">
-<meta property="og:description" content="前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 linux的io模型Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，需要阻塞数据到达，数据">
+<meta property="og:description" content="1. 前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 2. linux的io模型2.1. Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/pasted-161.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-162.png">
@@ -35,7 +35,7 @@
 <meta property="og:updated_time" content="2019-01-31T07:24:21.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[NIO]五个I&#x2F;O模型">
-<meta name="twitter:description" content="前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 linux的io模型Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，需要阻塞数据到达，数据">
+<meta name="twitter:description" content="1. 前言不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。 2. linux的io模型2.1. Blocking (I/O阻塞IO模型)刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用recvfrom，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。  这是比较耗时和浪费CPU的做法，">
 <meta name="twitter:image" content="https://htchz.cc/images/pasted-161.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/2990610001.html">
@@ -230,6 +230,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#linux的io模型"><span class="toc-text">2. linux的io模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Blocking-I-O阻塞IO模型"><span class="toc-text">2.1. Blocking (I/O阻塞IO模型)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nonblocking-I-O（非阻塞IO模型）"><span class="toc-text">2.2. Nonblocking I/O（非阻塞IO模型）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#I-O-Multiplexing-多路复用"><span class="toc-text">2.3. I/O Multiplexing(多路复用)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Signal-Driven-I-O（信号驱动I-O）"><span class="toc-text">2.4. Signal-Driven I/O（信号驱动I/O）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Asynchronous-I-O-（异步I-O）"><span class="toc-text">2.5. Asynchronous I/O （异步I/O）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#对比"><span class="toc-text">3. 对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">5. 参考</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-NIO-IO模型" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -269,45 +278,45 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2990610001.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 822(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 837(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
 	
 
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。</p>
-<h1 id="linux的io模型"><a href="#linux的io模型" class="headerlink" title="linux的io模型"></a>linux的io模型</h1><h2 id="Blocking-I-O阻塞IO模型"><a href="#Blocking-I-O阻塞IO模型" class="headerlink" title="Blocking (I/O阻塞IO模型)"></a>Blocking (I/O阻塞IO模型)</h2><p><img src="/images/pasted-161.png" alt="upload successful"><br>刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用<code>recvfrom</code>，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。</p>
+        <h1 id="前言">1. 前言</h1><p>不先了解一下Linux的IO模型，看java的nio真是一脸懵逼。。</p>
+<h1 id="linux的io模型">2. linux的io模型</h1><h2 id="Blocking-I-O阻塞IO模型">2.1. Blocking (I/O阻塞IO模型)</h2><p><img src="/images/pasted-161.png" alt="upload successful"><br>刚学java的时候想必学的都是阻塞IO传输，底层调用就是上面的图锁展示的过程，进程调用<code>recvfrom</code>，进入阻塞状态，然后系统将数据从网卡/硬盘读取到内核，由从内核复制到用户态，最终返回给进程，进程继续运行。</p>
 <blockquote>
 <p>这是比较耗时和浪费CPU的做法，需要阻塞<strong>数据到达</strong>，<strong>数据复制</strong></p>
 </blockquote>
-<h2 id="Nonblocking-I-O（非阻塞IO模型）"><a href="#Nonblocking-I-O（非阻塞IO模型）" class="headerlink" title="Nonblocking I/O（非阻塞IO模型）"></a>Nonblocking I/O（非阻塞IO模型）</h2><p><img src="/images/pasted-162.png" alt="upload successful"><br>底层轮询调用<code>recvfrom</code>，系统会立刻返回读取结果，如果读取不到数据，则开启下一次调用，直到数据返回。</p>
+<h2 id="Nonblocking-I-O（非阻塞IO模型）">2.2. Nonblocking I/O（非阻塞IO模型）</h2><p><img src="/images/pasted-162.png" alt="upload successful"><br>底层轮询调用<code>recvfrom</code>，系统会立刻返回读取结果，如果读取不到数据，则开启下一次调用，直到数据返回。</p>
 <blockquote>
 <p>这种模式不用阻塞<strong>数据到达</strong>，需要阻塞<strong>数据复制</strong>。但是处于轮询状态的进程又是另一种意义上的阻塞，所以其实效率没有提高多少。</p>
 </blockquote>
-<h2 id="I-O-Multiplexing-多路复用"><a href="#I-O-Multiplexing-多路复用" class="headerlink" title="I/O Multiplexing(多路复用)"></a>I/O Multiplexing(多路复用)</h2><p>Unix/Linux 环境下的 I/O 复用模型包含三组系统调用，分别是 select、poll 和 epoll，在历史上依次出现。<br><img src="/images/pasted-163.png" alt="upload successful"><br>select 有三个文件描述符集（readfds），分别是可读文件描述符集（writefds）、可写文件描述符集和异常文件描述符集（exceptfds）。进程将文件描述符（socket也有文件描述符表示）注册到感兴趣的文件描述符集中，</p>
+<h2 id="I-O-Multiplexing-多路复用">2.3. I/O Multiplexing(多路复用)</h2><p>Unix/Linux 环境下的 I/O 复用模型包含三组系统调用，分别是 select、poll 和 epoll，在历史上依次出现。<br><img src="/images/pasted-163.png" alt="upload successful"><br>select 有三个文件描述符集（readfds），分别是可读文件描述符集（writefds）、可写文件描述符集和异常文件描述符集（exceptfds）。进程将文件描述符（socket也有文件描述符表示）注册到感兴趣的文件描述符集中，</p>
 <p>在这种模式下，<code>select</code>先被调用，进程处于阻塞状态，直至<strong>一个或多个</strong>事件返回。然后使用<code>recvfrom</code>读取数据。</p>
 <blockquote>
 <p>这种模式需要阻塞<strong>数据到达</strong>，<strong>数据复制</strong>。但是BIO由于一次只等待一个<strong>数据到达</strong>，所以性能上多路复用更优。</p>
 </blockquote>
-<h2 id="Signal-Driven-I-O（信号驱动I-O）"><a href="#Signal-Driven-I-O（信号驱动I-O）" class="headerlink" title="Signal-Driven I/O（信号驱动I/O）"></a>Signal-Driven I/O（信号驱动I/O）</h2><p>进程告诉内核，某个socket 的某个事件发生时，向进程发送信号。接收到信号后，对应的函数回去处理事件。<br><img src="/images/pasted-165.png" alt="upload successful"></p>
+<h2 id="Signal-Driven-I-O（信号驱动I-O）">2.4. Signal-Driven I/O（信号驱动I/O）</h2><p>进程告诉内核，某个socket 的某个事件发生时，向进程发送信号。接收到信号后，对应的函数回去处理事件。<br><img src="/images/pasted-165.png" alt="upload successful"></p>
 <blockquote>
 <p>这种模式不用阻塞<strong>数据到达</strong>，需要阻塞<strong>数据复制</strong></p>
 </blockquote>
 <p>想想，如果<strong>数据复制</strong>完再通知进程，不就不用阻塞了。于是有下面的异步IO的模型出现。</p>
-<h2 id="Asynchronous-I-O-（异步I-O）"><a href="#Asynchronous-I-O-（异步I-O）" class="headerlink" title="Asynchronous I/O （异步I/O）"></a>Asynchronous I/O （异步I/O）</h2><p><img src="/images/pasted-166.png" alt="upload successful"><br>这就是信号驱动I/O的升级版，完全异步，进程无阻塞。对于大部分平台来说，底层利用的还是非异步模型结合回调函数来实现。</p>
+<h2 id="Asynchronous-I-O-（异步I-O）">2.5. Asynchronous I/O （异步I/O）</h2><p><img src="/images/pasted-166.png" alt="upload successful"><br>这就是信号驱动I/O的升级版，完全异步，进程无阻塞。对于大部分平台来说，底层利用的还是非异步模型结合回调函数来实现。</p>
 <blockquote>
 <p>遗憾的是，linux的网络IO中是不存在异步IO的，linux的网络IO处理的第二阶段总是阻塞等待数据copy完成的。真正意义上的网络异步IO是Windows下的IOCP（IO完成端口）模型。</p>
 </blockquote>
-<h1 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h1><p><img src="/images/pasted-167.png" alt="upload successful"></p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><blockquote>
+<h1 id="对比">3. 对比</h1><p><img src="/images/pasted-167.png" alt="upload successful"></p>
+<h1 id="总结">4. 总结</h1><blockquote>
 <p>Unix网络编程」中说道，按照POSIX标准中的术语，同步指的是I/O动作会导致用户进程阻塞，异步则刚好相反。按照这种分类，上边5种I/O模型中，只有AIO一种是异步的，其他都是同步的。</p>
 </blockquote>
 <p>但是这些只是相对的，程序往往是多线程运行，拿Java来说，主线程调用select操作是阻塞的，但是<strong>数据复制</strong>这个阻塞过程放到子线程中，对主线程来说没有影响。这也是为什么java的NIO称为同步非阻塞IO。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<h1 id="参考">5. 参考</h1><ul>
 <li><a href="https://www.kancloud.cn/digest/unix-fzyz-sb/168128" target="_blank" rel="noopener">IO复用</a></li>
 </ul>
 
@@ -376,6 +385,15 @@
       <a href="/3683368056.html" title="[Java基础]SimpleDateFormat线程安全的问题"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

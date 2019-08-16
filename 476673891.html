@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#对象优先在Eden分配"><span class="toc-text">1. 对象优先在Eden分配</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#大对象直接进入老年代"><span class="toc-text">2. 大对象直接进入老年代</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#长期存活的对象将进入老年代"><span class="toc-text">3. 长期存活的对象将进入老年代</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#动态对象年龄判定"><span class="toc-text">4. 动态对象年龄判定</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#空间分配担保"><span class="toc-text">5. 空间分配担保</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-GC那些事-四-对象的分配回收策略" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/476673891.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 479(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 484(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -277,14 +286,14 @@
 </blockquote>
 <a id="more"></a>
 <p>内存分配规则不是固定的，取决于虚拟机参数、GC组合类型</p>
-<h1 id="对象优先在Eden分配"><a href="#对象优先在Eden分配" class="headerlink" title="对象优先在Eden分配"></a>对象优先在Eden分配</h1><p>大多数情况下对象再新生代Eden区中分配，当没有足够的空间时，虚拟机将发起一次Minor GC。</p>
-<h1 id="大对象直接进入老年代"><a href="#大对象直接进入老年代" class="headerlink" title="大对象直接进入老年代"></a>大对象直接进入老年代</h1><p>所谓的大对象就是指需要连续空间的java对象，最典型的是数组和字符串。（应避免短命大对象）</p>
-<h1 id="长期存活的对象将进入老年代"><a href="#长期存活的对象将进入老年代" class="headerlink" title="长期存活的对象将进入老年代"></a>长期存活的对象将进入老年代</h1><p>每个对象有对象年龄（Age）计数器。每次在minor GC后仍存在且能被survivor区容纳的话，年龄就+1（初始为0），达到一个阈值（默认15），就晋升到老年代中</p>
-<h1 id="动态对象年龄判定"><a href="#动态对象年龄判定" class="headerlink" title="动态对象年龄判定"></a>动态对象年龄判定</h1><blockquote>
+<h1 id="对象优先在Eden分配">1. 对象优先在Eden分配</h1><p>大多数情况下对象再新生代Eden区中分配，当没有足够的空间时，虚拟机将发起一次Minor GC。</p>
+<h1 id="大对象直接进入老年代">2. 大对象直接进入老年代</h1><p>所谓的大对象就是指需要连续空间的java对象，最典型的是数组和字符串。（应避免短命大对象）</p>
+<h1 id="长期存活的对象将进入老年代">3. 长期存活的对象将进入老年代</h1><p>每个对象有对象年龄（Age）计数器。每次在minor GC后仍存在且能被survivor区容纳的话，年龄就+1（初始为0），达到一个阈值（默认15），就晋升到老年代中</p>
+<h1 id="动态对象年龄判定">4. 动态对象年龄判定</h1><blockquote>
 <p>并不是必须达到年龄才可以晋升老年代</p>
 </blockquote>
 <p>如果在Survivor空间中，相同年龄所有对象大小总和大于Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代。</p>
-<h1 id="空间分配担保"><a href="#空间分配担保" class="headerlink" title="空间分配担保"></a>空间分配担保</h1><p>Minor GC之前，如果<strong>老年代最大可用的连续空间</strong>大于<strong>新生代所有对象总空间</strong>，则GC安全。<br>否则，检查是否允许担保失败（HandlePromotionFailure的值）。<br>如果允许，则继续检查<strong>老年代最大可用的连续空间</strong>是否大于<strong>历次晋升到老年代对象的平均大小</strong>。如果大于，则尝试Minor GC。<br>如果小于或者不允许，则改为Full GC</p>
+<h1 id="空间分配担保">5. 空间分配担保</h1><p>Minor GC之前，如果<strong>老年代最大可用的连续空间</strong>大于<strong>新生代所有对象总空间</strong>，则GC安全。<br>否则，检查是否允许担保失败（HandlePromotionFailure的值）。<br>如果允许，则继续检查<strong>老年代最大可用的连续空间</strong>是否大于<strong>历次晋升到老年代对象的平均大小</strong>。如果大于，则尝试Minor GC。<br>如果小于或者不允许，则改为Full GC</p>
 <blockquote>
 <p>jdk 6u24 之后，HandlePromotionFailure已经不影响分配担保策略了。如果<strong>老年代最大可用的连续空间</strong>大于<strong>新生代所有对象总空间</strong>，或者大于<strong>历次晋升到老年代对象的平均大小</strong>，则进行Minor GC，否则Full GC。</p>
 </blockquote>
@@ -354,6 +363,15 @@
       <a href="/1666990746.html" title="[JVM]GC那些事(三)HotSpot算法的实现"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

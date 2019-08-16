@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Minor-GC？Full-GC？"><span class="toc-text">1. Minor GC？Full GC？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#什么时候会触发Minor-GC"><span class="toc-text">2. 什么时候会触发Minor GC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#什么时候触发Full-GC"><span class="toc-text">3. 什么时候触发Full GC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#什么时候OOM"><span class="toc-text">4. 什么时候OOM</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#什么是空间不够"><span class="toc-text">5. 什么是空间不够</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#其他的一些tip"><span class="toc-text">6. 其他的一些tip</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-GC那些事-六-MinorGC与FullGC" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -276,17 +285,17 @@
 <p>面试只要沾到jvm，就肯定会沾到GC，沾到GC，就肯定会沾到这两个家伙。不同的垃圾收集器的GC方式不一样，我们在讨论的时候最好基于某种垃圾收集器来讲。</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="Minor-GC？Full-GC？"><a href="#Minor-GC？Full-GC？" class="headerlink" title="Minor GC？Full GC？"></a>Minor GC？Full GC？</h1><ul>
+<h1 id="Minor-GC？Full-GC？">1. Minor GC？Full GC？</h1><ul>
 <li>minor gc指的是在年轻代的gc</li>
 <li>full gc指的是整个堆的清理，包括年轻代和老年代(老年代的gc一般叫major gc)</li>
 </ul>
-<h1 id="什么时候会触发Minor-GC"><a href="#什么时候会触发Minor-GC" class="headerlink" title="什么时候会触发Minor GC"></a>什么时候会触发Minor GC</h1><p>我们拿CMS来举例子。</p>
+<h1 id="什么时候会触发Minor-GC">2. 什么时候会触发Minor GC</h1><p>我们拿CMS来举例子。</p>
 <ul>
 <li>Eden区域满了，或者新创建的对象大小 &gt; Eden所剩空间</li>
 <li>CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会先做一次Minor GC来清理新生代，加速之后的Remark的速度。这样整体的stop-the world时间反而短</li>
 <li>Full GC的时候会先触发Minor GC</li>
 </ul>
-<h1 id="什么时候触发Full-GC"><a href="#什么时候触发Full-GC" class="headerlink" title="什么时候触发Full GC"></a>什么时候触发Full GC</h1><ul>
+<h1 id="什么时候触发Full-GC">3. 什么时候触发Full GC</h1><ul>
 <li>Minor GC后对象晋升老年代，由于担保机制(看<code>《[JVM]GC那些事(四)对象的分配回收策略》</code>)，两种情况触发Full GC，一种晋升平均大小 &gt; 老年代剩余空间（基于历史平均水平），另一种存活对象 &gt; 老年代剩余空间（基于下一次可能要晋升的最大水平），两种情况都属于<strong>promotion failure</strong></li>
 <li>发生concurrent mode failure会引起Full GC，<strong>这种情况下会使用Serial Old收集器</strong>，是单线程的，对GC的影响很大。大对象(由PretenureSizeThreshold控制新生代直接晋升老年代的对象size阀值)不能进入到老年代，只有stop the world来暂停用户线程，执行GC清理。可以通过设置CMSInitiatingOccupancyFraction预留合适的CMS执行时剩余的空间</li>
 <li><strong>（jdk8 已完全移除永久die，将此类信息放入本地内存）</strong>Perm永久代空间不足会触发Full GC，可以让CMS清理永久代的空间。设置CMSClassUnloadingEnabled即可</li>
@@ -295,17 +304,17 @@
 </blockquote>
 </li>
 </ul>
-<h1 id="什么时候OOM"><a href="#什么时候OOM" class="headerlink" title="什么时候OOM"></a>什么时候OOM</h1><blockquote>
+<h1 id="什么时候OOM">4. 什么时候OOM</h1><blockquote>
 <p>OOM不是内存达到100%才报的</p>
 </blockquote>
 <ul>
 <li>当花在GC的时间超过了GCTimeLimit，这个值默认是98%</li>
 <li>当GC后的容量小于GCHeapFreeLimit，这个值默认是2%</li>
 </ul>
-<h1 id="什么是空间不够"><a href="#什么是空间不够" class="headerlink" title="什么是空间不够"></a>什么是空间不够</h1><ul>
+<h1 id="什么是空间不够">5. 什么是空间不够</h1><ul>
 <li>剩余空间不够不是说整体的空间不够分配某个对象，而是说连续的空间不够分配给某个对象。所以一旦内存碎片大多就可能发生剩余空间不够的问题，所以CMS这种收集器，需要在标记-清除几次之后进行压缩，进行优化。CMSFullGCsBeforeCompaction可以设置进行几次清除之后进行压缩</li>
 </ul>
-<h1 id="其他的一些tip"><a href="#其他的一些tip" class="headerlink" title="其他的一些tip"></a>其他的一些tip</h1><ul>
+<h1 id="其他的一些tip">6. 其他的一些tip</h1><ul>
 <li>JMI默认会一个小时调用一次System.gc()清理缓存，所以可以DisableExplicitGC，也可以设置sun.rmi.dgc.client.gcInterval和sun.rmi.dgc.server.gcInterval参数来规定JMI清理的时间</li>
 <li>一旦对象进入了老年代，那么只有触发CMS(只针对CMS而言)或者Full GC的时候才能被清除。</li>
 <li>CMS不等于Full GC，很多人会认为CMS肯定会引发Minor GC。CMS是针对老年代的GC策略，原则上它不会去清理新生代，只有设置CMSScavengeBeforeRemark优化时，或者是concurrent mode failure的时候才会去做Minor GC。</li>
@@ -380,6 +389,15 @@
       <a href="/1597842502.html" title="[JVM]GC那些事(五)垃圾收集器"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

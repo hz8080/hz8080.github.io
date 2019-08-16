@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#的问题"><span class="toc-text">1. \的问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#与"><span class="toc-text">2. $与\</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Java基础-replaceAll不为人知的故事" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2850894714.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 563(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 565(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -276,9 +285,9 @@
 <p>String.replaceAll和String.replace的区别是，String.replaceAll使用的匹配模式是正则表达式。但是第二参数<code>replacement</code>不是简单的字符串，里面有点特殊的东西。</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="的问题"><a href="#的问题" class="headerlink" title="\的问题"></a><code>\</code>的问题</h1><p>已知<code>String str = &quot;a\\bc&quot;</code>,请问利用<code>String.replaceAll</code>把<code>str</code>输出为<code>a\\bc</code>到控制台怎么做？<br>答案是：<code>System.out.println(str.replaceAll(&quot;\\\\&quot;, &quot;\\\\\\\\&quot;))</code><br>我们知道一个反斜杠用java正则来表示需要这么写<code>&quot;\\\\&quot;</code>，所以我一开始这么写<code>str.replaceAll(&quot;\\\\&quot;, &quot;\\\\&quot;</code>,结果输出的却是：</p>
+<h1 id="的问题">1. \的问题</h1><p>已知<code>String str = &quot;a\\bc&quot;</code>,请问利用<code>String.replaceAll</code>把<code>str</code>输出为<code>a\\bc</code>到控制台怎么做？<br>答案是：<code>System.out.println(str.replaceAll(&quot;\\\\&quot;, &quot;\\\\\\\\&quot;))</code><br>我们知道一个反斜杠用java正则来表示需要这么写<code>&quot;\\\\&quot;</code>，所以我一开始这么写<code>str.replaceAll(&quot;\\\\&quot;, &quot;\\\\&quot;</code>,结果输出的却是：</p>
 <pre><code>a\bc</code></pre><p>少了一杠，于是我不明白，<code>replacement</code>用<code>&quot;\\\\&quot;</code>表示两个斜杠有错？</p>
-<h1 id="与"><a href="#与" class="headerlink" title="$与\"></a><code>$</code>与<code>\</code></h1><p>在<code>String.replaceAll</code>的注释是这样的，</p>
+<h1 id="与">2. $与\</h1><p>在<code>String.replaceAll</code>的注释是这样的，</p>
 <blockquote>
 <p>Note that backslashes ({@code }) and dollar signs ({@code $}) in the replacement string may cause the results to be different than if it were being treated as a literal replacement string; </p>
 </blockquote>
@@ -359,6 +368,15 @@ System.out.println(&quot;abac&quot;.replaceFirst(&quot;a(\\w)&quot;, &quot;$1$1&
       <a href="/3428339883.html" title="[Time]一个关于获取系统时间的优化"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

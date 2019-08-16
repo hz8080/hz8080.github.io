@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#引用计数法"><span class="toc-text">1. 引用计数法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#可达性分析算法"><span class="toc-text">2. 可达性分析算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#再谈引用"><span class="toc-text">3. 再谈引用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#生存还是死亡"><span class="toc-text">4. 生存还是死亡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#回收方法区"><span class="toc-text">5. 回收方法区</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-GC那些事" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2872318404.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 930(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 935(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
@@ -279,12 +288,12 @@
 
 <p>看过《深入java虚拟机》，里面对GC的讲解看完有个大概了解。于是自己总结一下。</p>
 <p>怎么判断一个对象已死，是GC的第一步。</p>
-<h1 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h1><p>引用计数法就是当对象的引用为0时，才进行GC。事实上这是不可行的。看下面的示例。</p>
+<h1 id="引用计数法">1. 引用计数法</h1><p>引用计数法就是当对象的引用为0时，才进行GC。事实上这是不可行的。看下面的示例。</p>
 <blockquote>
 <p>对象a和b都有一个instance字段，如果执行<br>a.instance = b;<br>b.instance = a;<br>a = null;<br>b = null; </p>
 </blockquote>
 <p>上面的两个对象相互引用着，引用数都为1，但是a和b指的对象都不能再被访问，理论上在内存中是垃圾，但两个对象无法被gc回收。</p>
-<h1 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h1><p>我们一般通过可达性分析算法来确认对象的存活。  </p>
+<h1 id="可达性分析算法">2. 可达性分析算法</h1><p>我们一般通过可达性分析算法来确认对象的存活。  </p>
 <ul>
 <li>通过一系列的成为<strong>GC Roots</strong>的对象作为起始点，从这些节点开始向下搜索，搜索走过的路径称为引用链（Reference Chain）</li>
 <li>当一个对象到GC Roots没有任何引用链相连时，证明此对象不可用</li>
@@ -299,14 +308,14 @@
 <blockquote>
 <p><a href="https://www.zhihu.com/question/50381439" target="_blank" rel="noopener">Java中什么样的对象才能作为gc root，gc roots有哪些呢？</a></p>
 </blockquote>
-<h1 id="再谈引用"><a href="#再谈引用" class="headerlink" title="再谈引用"></a>再谈引用</h1><p>java引用在jdk1.2之后进行了扩充，分为强引用（Strong Reference）、软引用（Soft Reference）、弱引用（Weak Reference）、虚引用（Phantom Reference）</p>
+<h1 id="再谈引用">3. 再谈引用</h1><p>java引用在jdk1.2之后进行了扩充，分为强引用（Strong Reference）、软引用（Soft Reference）、弱引用（Weak Reference）、虚引用（Phantom Reference）</p>
 <ul>
 <li>强引用最普遍，GC不会回收被引用的对象</li>
 <li>软银用用来描述还有用但非必需的对象，要发生OOM时进行清理</li>
 <li>弱引用用来描述非必需的，只能生存到下次GC收集之前</li>
 <li>虚引用也称为幽灵引用和幻影引用。为一个对象设置虚引用的唯一目的：在这个对象被收集器回收时收到一个系统通知</li>
 </ul>
-<h1 id="生存还是死亡"><a href="#生存还是死亡" class="headerlink" title="生存还是死亡"></a>生存还是死亡</h1><p>一个对象进行可达性分析算法后如不可达，也只是进入缓刑。真正宣告一个对象死亡，要经历两次标记：</p>
+<h1 id="生存还是死亡">4. 生存还是死亡</h1><p>一个对象进行可达性分析算法后如不可达，也只是进入缓刑。真正宣告一个对象死亡，要经历两次标记：</p>
 <ul>
 <li>没有和GC Roots相连接，没有则第一次标记</li>
 <li>被第一次标记过的对象进行筛选，若<strong>未重写finalize()方法</strong>或对象<strong>被执行过一次finalize()</strong>，则<strong>没必要执行finalize()方法</strong>，死刑</li>
@@ -316,7 +325,7 @@
 <blockquote>
 <p>尽量别使用这个运行代价高昂的方法<code>finalize()</code></p>
 </blockquote>
-<h1 id="回收方法区"><a href="#回收方法区" class="headerlink" title="回收方法区"></a>回收方法区</h1><p>此处回收两部分内容： 废弃常量和无用的类</p>
+<h1 id="回收方法区">5. 回收方法区</h1><p>此处回收两部分内容： 废弃常量和无用的类</p>
 <ul>
 <li>回收废弃常量和回收java堆中的对象很相似：假如一个字符串“abc”被放进常量池，但系统没有一个string对象是“abc”的，那么内存回收时，“abc”会被清理</li>
 <li>判断一个类是否是无用的类条件比较苛刻，需满足下面三个：<ul>
@@ -396,6 +405,15 @@
       <a href="/1807419896.html" title="[建站]Linode开启Google BBR的正确方法"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

@@ -236,6 +236,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Java对象模型"><span class="toc-text">1. Java对象模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#使用HSDB调试"><span class="toc-text">2. 使用HSDB调试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#计算对象的大小"><span class="toc-text">3. 计算对象的大小</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#java-lang-instrument-Instrumentation-getObjectSize-的方式"><span class="toc-text">3.1. java.lang.instrument.Instrumentation.getObjectSize()的方式</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-JVM-对象的组成" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -290,7 +299,7 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="Java对象模型"><a href="#Java对象模型" class="headerlink" title="Java对象模型"></a>Java对象模型</h1><p>Hotspot主要是用C++写的，所以它定义的Java对象表示模型也是基于C++实现的。</p>
+<h1 id="Java对象模型">1. Java对象模型</h1><p>Hotspot主要是用C++写的，所以它定义的Java对象表示模型也是基于C++实现的。</p>
 <p>Java对象的表示模型叫做“OOP-Klass”二分模型，包括两部分:</p>
 <ol>
 <li><p>OOP，即Ordinary Object Point，普通对象指针，说白了就是表示对象除了元数数据之外的信息。</p>
@@ -359,7 +368,7 @@
 <p>所谓的给一个对象加锁，其实就是设置了对象头标志位。当其他线程看到这个对象的状态是加锁状态后，就等待释放锁。关于锁我们另开一篇。</p>
 </blockquote>
 <p>在方法区的instanceKlass对象相当于Class加载后创建的运行时对象，它包含了运行时常量池，字段，方法等元数据，当调用一个对象的方法时，如上面的图所示，实际定位到了方法区的instanceKlass对象的方法元数据。</p>
-<h1 id="使用HSDB调试"><a href="#使用HSDB调试" class="headerlink" title="使用HSDB调试"></a>使用HSDB调试</h1><blockquote>
+<h1 id="使用HSDB调试">2. 使用HSDB调试</h1><blockquote>
 <p>HSDB是一款内置与SA的GUI调试工具，集成了各种JVM监控工具，可以用来深入分析JVM内部状态。这玩意在windows的jdk7才自带，mac和linux吓得jdk6就有了。</p>
 </blockquote>
 <p>首先我们运行一个程序，并打上断点。</p>
@@ -386,12 +395,12 @@
 <p><img src="/images/pasted-84.png" alt="upload successful"></p>
 <p>_mark就是对象头，接着是实例数据信息。HSDB没有显示类对象指针</p>
 <p><img src="/images/pasted-85.png" alt="upload successful"></p>
-<h1 id="计算对象的大小"><a href="#计算对象的大小" class="headerlink" title="计算对象的大小"></a>计算对象的大小</h1><p>程序计算方法</p>
+<h1 id="计算对象的大小">3. 计算对象的大小</h1><p>程序计算方法</p>
 <ol>
 <li>通过java.lang.instrument.Instrumentation的getObjectSize(obj)直接获取对象的大小</li>
 <li>通过sun.misc.Unsafe对象的objectFieldOffset(field)等方法结合反射来计算对象的大小</li>
 </ol>
-<h2 id="java-lang-instrument-Instrumentation-getObjectSize-的方式"><a href="#java-lang-instrument-Instrumentation-getObjectSize-的方式" class="headerlink" title="java.lang.instrument.Instrumentation.getObjectSize()的方式"></a>java.lang.instrument.Instrumentation.getObjectSize()的方式</h2><p>讲讲java.lang.instrument.Instrumentation.getObjectSize()的方式，这种方法得到的是Shallow Size，即遇到引用时，只计算引用的长度，不计算所引用的对象的实际大小。如果要计算所引用对象的实际大小，可以通过递归的方式去计算。</p>
+<h2 id="java-lang-instrument-Instrumentation-getObjectSize-的方式">3.1. java.lang.instrument.Instrumentation.getObjectSize()的方式</h2><p>讲讲java.lang.instrument.Instrumentation.getObjectSize()的方式，这种方法得到的是Shallow Size，即遇到引用时，只计算引用的长度，不计算所引用的对象的实际大小。如果要计算所引用对象的实际大小，可以通过递归的方式去计算。</p>
 <p>java.lang.instrument.Instrumentation的实例必须通过指定javaagent的方式才能获得，具体的步骤如下：</p>
 <ol>
 <li>定义一个类，提供一个premain方法: public static void premain(String agentArgs, Instrumentation instP)</li>
@@ -486,6 +495,15 @@ jar cvfm java-agent-sizeof.jar META-INF/MANIFEST.MF  .  </code></pre><p>准备�
       <a href="/1103575483.html" title="[Chrome小绿锁]Https那些事"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

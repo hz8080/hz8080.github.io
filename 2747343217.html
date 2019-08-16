@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Go调度器组成"><span class="toc-text">2. Go调度器组成</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#G"><span class="toc-text">2.1. G</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#M"><span class="toc-text">2.2. M</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#P"><span class="toc-text">2.3. P</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#调度过程"><span class="toc-text">3. 调度过程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#P-队列"><span class="toc-text">3.1. P 队列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#上线文切换"><span class="toc-text">3.2. 上线文切换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#线程清理"><span class="toc-text">3.3. 线程清理</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Golang基础-Goroutine调度" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -279,7 +288,7 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>随着服务器硬件迭代升级，配置也越来越高。为充分利用服务器资源，并发编程也变的越来越重要。在开始之前，需要了解一下并发(concurrency)和并行(parallesim)的区别。</p>
+<h1 id="前言">1. 前言</h1><p>随着服务器硬件迭代升级，配置也越来越高。为充分利用服务器资源，并发编程也变的越来越重要。在开始之前，需要了解一下并发(concurrency)和并行(parallesim)的区别。</p>
 <ul>
 <li>并发:  逻辑上具有处理多个同时性任务的能力。</li>
 <li>并行:   物理上同一时刻执行多个并发任务。</li>
@@ -289,42 +298,42 @@
 <p>Go编写一个并发编程程序很简单，只需要在函数之前使用一个Go关键字就可以实现并发编程。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;     </span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">        fmt.Println(<span class="string">"Hello,World!"</span>)</span><br><span class="line">    &#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="Go调度器组成"><a href="#Go调度器组成" class="headerlink" title="Go调度器组成"></a>Go调度器组成</h1><p>Go语言虽然使用一个 Go 关键字即可实现并发编程，但Goroutine被调度到后端之后，具体的实现比较复杂。先看看调度器有哪几部分组成。</p>
+<h1 id="Go调度器组成">2. Go调度器组成</h1><p>Go语言虽然使用一个 Go 关键字即可实现并发编程，但Goroutine被调度到后端之后，具体的实现比较复杂。先看看调度器有哪几部分组成。</p>
 <ul>
 <li>G</li>
 <li>M</li>
 <li>P</li>
 </ul>
-<h2 id="G"><a href="#G" class="headerlink" title="G"></a>G</h2><p>G是 Go routine的缩写，相当于操作系统中的进程控制块，在这里就是Goroutine的控制结构，是对Goroutine的抽象。其中包括执行的函数指令及参数；G保存的任务对象；线程上下文切换，现场保护和现场恢复需要的寄存器(SP、IP)等信息。</p>
+<h2 id="G">2.1. G</h2><p>G是 Go routine的缩写，相当于操作系统中的进程控制块，在这里就是Goroutine的控制结构，是对Goroutine的抽象。其中包括执行的函数指令及参数；G保存的任务对象；线程上下文切换，现场保护和现场恢复需要的寄存器(SP、IP)等信息。</p>
 <blockquote>
 <p>Go不同版本Goroutine默认栈大小不同。</p>
 </blockquote>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go1.11版本默认stack大小为2KB</span></span><br><span class="line"></span><br><span class="line">_StackMin = <span class="number">2048</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 创建一个g对象,然后放到g队列</span></span><br><span class="line"><span class="comment">// 等待被执行</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newproc1</span><span class="params">(fn *funcval, argp *<span class="keyword">uint8</span>, narg <span class="keyword">int32</span>, callergp *g, callerpc <span class="keyword">uintptr</span>)</span></span> &#123;</span><br><span class="line">    _g_ := getg()</span><br><span class="line"></span><br><span class="line">    _g_.m.locks++</span><br><span class="line">    siz := narg</span><br><span class="line">    siz = (siz + <span class="number">7</span>) &amp;^ <span class="number">7</span></span><br><span class="line"></span><br><span class="line">    _p_ := _g_.m.p.ptr()</span><br><span class="line">    newg := gfget(_p_)    </span><br><span class="line">    <span class="keyword">if</span> newg == <span class="literal">nil</span> &#123;        </span><br><span class="line">       <span class="comment">// 初始化g stack大小</span></span><br><span class="line">        newg = malg(_StackMin)</span><br><span class="line">        casgstatus(newg, _Gidle, _Gdead)</span><br><span class="line">        allgadd(newg)</span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="comment">// 以下省略&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="M"><a href="#M" class="headerlink" title="M"></a>M</h2><p>M是一个线程或称为Machine，对应操作系统线程。所有M是有线程栈的。如果不对该线程栈提供内存的话，系统会给该线程栈提供内存(不同操作系统提供的线程栈大小不同)。当指定了线程栈，则M.stack→G.stack，M的PC寄存器指向G提供的函数，然后去执行。</p>
+<h2 id="M">2.2. M</h2><p>M是一个线程或称为Machine，对应操作系统线程。所有M是有线程栈的。如果不对该线程栈提供内存的话，系统会给该线程栈提供内存(不同操作系统提供的线程栈大小不同)。当指定了线程栈，则M.stack→G.stack，M的PC寄存器指向G提供的函数，然后去执行。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> m <span class="keyword">struct</span> &#123;    </span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        1.  所有调用栈的Goroutine,这是一个比较特殊的Goroutine。</span></span><br><span class="line"><span class="comment">        2.  普通的Goroutine栈是在Heap分配的可增长的stack,而g0的stack是M对应的线程栈。</span></span><br><span class="line"><span class="comment">        3.  所有调度相关代码,会先切换到该Goroutine的栈再执行。</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    g0       *g</span><br><span class="line">    curg     *g         <span class="comment">// M当前绑定的结构体G</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// SP、PC寄存器用于现场保护和现场恢复</span></span><br><span class="line">    vdsoSP <span class="keyword">uintptr</span></span><br><span class="line">    vdsoPC <span class="keyword">uintptr</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略…&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="P"><a href="#P" class="headerlink" title="P"></a>P</h2><p>P(Processor)是一个抽象的概念，它存在的意义是为了限制并发任务的数量，并不是物理CPU的抽象。所以当P有任务时需要创建或者唤醒一个系统线程来执行它队列里的任务。所以P/M需要进行绑定，构成一个执行单元。</p>
+<h2 id="P">2.3. P</h2><p>P(Processor)是一个抽象的概念，它存在的意义是为了限制并发任务的数量，并不是物理CPU的抽象。所以当P有任务时需要创建或者唤醒一个系统线程来执行它队列里的任务。所以P/M需要进行绑定，构成一个执行单元。</p>
 <p>P决定了同时可以并发任务的数量，可通过GOMAXPROCS限制同时执行用户级任务的操作系统线程。可以通过runtime.GOMAXPROCS进行指定。在Go1.5之后GOMAXPROCS被默认设置可用的核数，而之前则默认为1。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 自定义设置GOMAXPROCS数量</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GOMAXPROCS</span><span class="params">(n <span class="keyword">int</span>)</span> <span class="title">int</span></span> &#123;    </span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        1.  GOMAXPROCS设置可执行的CPU的最大数量,同时返回之前的设置。</span></span><br><span class="line"><span class="comment">        2.  如果n &lt; 1,则不更改当前的值。</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    ret := <span class="keyword">int</span>(gomaxprocs)</span><br><span class="line"></span><br><span class="line">    stopTheWorld(<span class="string">"GOMAXPROCS"</span>)    </span><br><span class="line">    <span class="comment">// startTheWorld启动时,使用newprocs。</span></span><br><span class="line">    newprocs = <span class="keyword">int32</span>(n)</span><br><span class="line">    startTheWorld()    </span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认P被绑定到所有CPU核上</span></span><br><span class="line"><span class="comment">// P == cpu.cores</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getproccount</span><span class="params">()</span> <span class="title">int32</span></span> &#123;    </span><br><span class="line">    <span class="keyword">const</span> maxCPUs = <span class="number">64</span> * <span class="number">1024</span></span><br><span class="line">    <span class="keyword">var</span> buf [maxCPUs / <span class="number">8</span>]<span class="keyword">byte</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取CPU Core</span></span><br><span class="line">    r := sched_getaffinity(<span class="number">0</span>, unsafe.Sizeof(buf), &amp;buf[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    n := <span class="keyword">int32</span>(<span class="number">0</span>)    </span><br><span class="line">    <span class="keyword">for</span> _, v := <span class="keyword">range</span> buf[:r] &#123;        </span><br><span class="line">       <span class="keyword">for</span> v != <span class="number">0</span> &#123;</span><br><span class="line">            n += <span class="keyword">int32</span>(v &amp; <span class="number">1</span>)</span><br><span class="line">            v &gt;&gt;= <span class="number">1</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">0</span> &#123;</span><br><span class="line">       n = <span class="number">1</span></span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">return</span> n</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 一个进程默认被绑定在所有CPU核上,返回所有CPU core。</span></span><br><span class="line"><span class="comment">// 获取进程的CPU亲和性掩码系统调用</span></span><br><span class="line"><span class="comment">// rax 204                          ; 系统调用码</span></span><br><span class="line"><span class="comment">// system_call sys_sched_getaffinity; 系统调用名称</span></span><br><span class="line"><span class="comment">// rid  pid                         ; 进程号</span></span><br><span class="line"><span class="comment">// rsi unsigned int len             </span></span><br><span class="line"><span class="comment">// rdx unsigned long *user_mask_ptr</span></span><br><span class="line">sys_linux_amd64.s:</span><br><span class="line">TEXT runtime·sched_getaffinity(SB),NOSPLIT,$<span class="number">0</span></span><br><span class="line">    MOVQ    pid+<span class="number">0</span>(FP), DI</span><br><span class="line">    MOVQ    <span class="built_in">len</span>+<span class="number">8</span>(FP), SI</span><br><span class="line">    MOVQ    buf+<span class="number">16</span>(FP), DX</span><br><span class="line">    MOVL    $SYS_sched_getaffinity, AX</span><br><span class="line">    SYSCALL</span><br><span class="line">    MOVL    AX, ret+<span class="number">24</span>(FP)</span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
 
-<h1 id="调度过程"><a href="#调度过程" class="headerlink" title="调度过程"></a>调度过程</h1><p><img src="/images/pasted-148.png" alt="upload successful"><br>首先创建一个G对象，G对象保存到<strong>P本地队列或者是全局队列</strong>。P此时去唤醒一个M。P继续执行它的执行序。M寻找是否有空闲的P，如果有则将该G对象移动到它本身。接下来M执行一个调度循环(调用G对象-&gt;执行-&gt;清理线程→继续找新的Goroutine执行)。</p>
+<h1 id="调度过程">3. 调度过程</h1><p><img src="/images/pasted-148.png" alt="upload successful"><br>首先创建一个G对象，G对象保存到<strong>P本地队列或者是全局队列</strong>。P此时去唤醒一个M。P继续执行它的执行序。M寻找是否有空闲的P，如果有则将该G对象移动到它本身。接下来M执行一个调度循环(调用G对象-&gt;执行-&gt;清理线程→继续找新的Goroutine执行)。</p>
 <p>M执行过程中，随时会发生上下文切换。当发生上线文切换时，需要对执行现场进行保护，以便下次被调度执行时进行现场恢复。Go调度器M的栈保存在G对象上，只需要将M所需要的寄存器(SP、PC等)保存到G对象上就可以实现现场保护。当这些寄存器数据被保护起来，就随时可以做上下文切换了，在中断之前把现场保存起来。如果此时G任务还没有执行完，M可以将任务重新丢到P的任务队列，等待下一次被调度执行。当再次被调度执行时，M通过访问G的vdsoSP、vdsoPC寄存器进行现场恢复(从上次中断位置继续执行)。</p>
 <p>当M从队列中拿到一个可执行的G后，首先会去检查一下P队列中是否还有等待的G，如果还有等待的G，并且也还有空闲的P，此时就会通知runtime分配一个新的M（如果有在睡觉的OS线程，则直接唤醒它，没有的话则生成一个新的OS线程）来分担任务。</p>
 <p>如果某个M发现队列为空之后，会首先从全局队列中取一个G来处理。如果全局队列也空了，则会随机从别的P那里直接截取一半的队列过来（偷窃任务），如果发现所有的P都没有可供偷窃的G了，该M就会陷入沉睡。</p>
 <blockquote>
 <p>这种协作调度回导致全剧队列会响应得慢一丢丢，但是在总体上这种调度将处理器的机器性能充分发挥。</p>
 </blockquote>
-<h2 id="P-队列"><a href="#P-队列" class="headerlink" title="P 队列"></a>P 队列</h2><p>通过上图可以发现，P有两种队列：本地队列和全局队列。</p>
+<h2 id="P-队列">3.1. P 队列</h2><p>通过上图可以发现，P有两种队列：本地队列和全局队列。</p>
 <ul>
 <li>本地队列： 当前P的队列，本地队列是Lock-Free，没有数据竞争问题，无需加锁处理，可以提升处理速度。</li>
 <li>全局队列： 全局队列为了保证多个P之间任务的平衡。所有M共享P全局队列，为保证数据竞争问题，需要加锁处理。相比本地队列处理速度要低于全局队列。</li>
 </ul>
-<h2 id="上线文切换"><a href="#上线文切换" class="headerlink" title="上线文切换"></a>上线文切换</h2><p>简单理解为当时的环境即可，环境可以包括当时程序状态以及变量状态。例如线程切换的时候在内核会发生上下文切换，这里的上下文就包括了当时寄存器的值，把寄存器的值保存起来，等下次该线程又得到cpu时间的时候再恢复寄存器的值，这样线程才能正确运行。</p>
+<h2 id="上线文切换">3.2. 上线文切换</h2><p>简单理解为当时的环境即可，环境可以包括当时程序状态以及变量状态。例如线程切换的时候在内核会发生上下文切换，这里的上下文就包括了当时寄存器的值，把寄存器的值保存起来，等下次该线程又得到cpu时间的时候再恢复寄存器的值，这样线程才能正确运行。</p>
 <p>对于代码中某个值说，上下文是指这个值所在的局部(全局)作用域对象。相对于进程而言，上下文就是进程执行时的环境，具体来说就是各个变量和数据，包括所有的寄存器变量、进程打开的文件、内存(堆栈)信息等。</p>
-<h2 id="线程清理"><a href="#线程清理" class="headerlink" title="线程清理"></a>线程清理</h2><p>Goroutine被调度执行必须保证P/M进行绑定，所以线程清理只需要将P释放就可以实现线程的清理。什么时候P会释放，保证其它G可以被执行。P被释放主要有两种情况。</p>
+<h2 id="线程清理">3.3. 线程清理</h2><p>Goroutine被调度执行必须保证P/M进行绑定，所以线程清理只需要将P释放就可以实现线程的清理。什么时候P会释放，保证其它G可以被执行。P被释放主要有两种情况。</p>
 <ul>
 <li>主动释放： 最典型的例子是，当执行G任务时有系统调用，当发生系统调用时M会处于Block状态。调度器会设置一个超时时间，当超时时会将P释放。</li>
 <li>被动释放： 如果发生系统调用，有一个专门监控程序，进行扫描当前处于阻塞的P/M组合。当超过系统程序设置的超时时间，会自动将P资源抢走。去执行队列的其它G任务。</li>
@@ -395,6 +404,15 @@
       <a href="/2843017067.html" title="[Java基础]ForkJoinPool"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

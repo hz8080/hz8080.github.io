@@ -230,6 +230,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#场景"><span class="toc-text">1. 场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#探索"><span class="toc-text">2. 探索</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#dubbo协议"><span class="toc-text">2.1. dubbo协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hessian协议"><span class="toc-text">2.2. hessian协议</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解决方法"><span class="toc-text">3. 解决方法</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-碧油鸡-探索dubbo2-6-3版本之前的一个问题" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -269,7 +278,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/1632594101.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 669(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 676(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -283,14 +292,14 @@
 <p>由于<code>dubbo</code>版本较低遇到了一个诡异的问题。</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p><code>dubbo</code>的<code>RpcContext</code>存放了一个<code>attachments</code>属性，用于隐式传递参数，每次发起调用之后会<code>clear</code>清空。</p>
+<h1 id="场景">1. 场景</h1><p><code>dubbo</code>的<code>RpcContext</code>存放了一个<code>attachments</code>属性，用于隐式传递参数，每次发起调用之后会<code>clear</code>清空。</p>
 <p>使用了cat监控之后，可以在<code>dubbo</code>服务调用之间传递一个id作为链路跟踪。而这个参数就是在<code>Comsumer</code>发起请求前放入<code>attachments</code>，在<code>Provider</code>接收到请求后从<code>attachments</code>拿出。</p>
 <p>测试环境调用某服务会出现这个id时有时无的情况，于是分析日志，发现没有这个id的情况下，dubbo协议走的是hessian协议。原来此服务提供了hessian访问，于是客户端会随机走dubbo或者hessian协议。</p>
 <p>为什么hessian协议会丢<code>attachments</code>？这个id是通过实现<code>dubbo</code>的<code>Filter</code>塞进去的，理论上Filter应该是协议无关的。通过debug发现，在发送请求之前的<code>RpcContext.attachments</code>里也的确是有这个id。</p>
-<h1 id="探索"><a href="#探索" class="headerlink" title="探索"></a>探索</h1><h2 id="dubbo协议"><a href="#dubbo协议" class="headerlink" title="dubbo协议"></a>dubbo协议</h2><p>dubbo的consumer调用抽象为Invoker和Invocation，在Invoker执行invoke方法之前，需要执行负载均衡、重试计数、拦截器调用链，最后执行抽象类<code>AbstractInvoker.invoke</code>方法，继而调用不同协议的<code>doInvoke</code>方法</p>
+<h1 id="探索">2. 探索</h1><h2 id="dubbo协议">2.1. dubbo协议</h2><p>dubbo的consumer调用抽象为Invoker和Invocation，在Invoker执行invoke方法之前，需要执行负载均衡、重试计数、拦截器调用链，最后执行抽象类<code>AbstractInvoker.invoke</code>方法，继而调用不同协议的<code>doInvoke</code>方法</p>
 <p>看看dubbo协议的doInvoke方法，</p>
 <p><img src="/images/pasted-154.png" alt="upload successful"><br>可以看到请求是由一个<code>HeaderExchangeClient</code>去发起，<br><img src="/images/pasted-153.png" alt="upload successful"><br>这里的的channel是一个<code>nettyClient</code>，而<code>request</code>的内容如下：<br><img src="/images/pasted-155.png" alt="upload successful"><br>dubbo协议的实现是利用<code>socket长连接</code>，将整个<code>request</code>对象发送过去的,没有丢<code>attachments</code></p>
-<h2 id="hessian协议"><a href="#hessian协议" class="headerlink" title="hessian协议"></a>hessian协议</h2><p>hessian协议下是通过<code>com.caucho.hessian.client.HessianProxy#invoke</code>来发起请求，这个方法签名如下：</p>
+<h2 id="hessian协议">2.2. hessian协议</h2><p>hessian协议下是通过<code>com.caucho.hessian.client.HessianProxy#invoke</code>来发起请求，这个方法签名如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span></span></span><br></pre></td></tr></table></figure>
 
 <p>第一个参数不知道是干嘛的，第二个参数和第三个参数分别是调用服务的方法对象和参数。反正这个方法是没地方放<code>attchments</code>这种<strong>隐式参数</strong>含义的东西。</p>
@@ -304,7 +313,7 @@
 
 <p>就把invocation里的<code>attachments</code>丢了</p>
 <p><img src="/images/pasted-157.png" alt="upload successful"></p>
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>dubbo版本至少升级直2.6.3，这个版本对提供了对hessian协议的<code>attachments</code>支持。</p>
+<h1 id="解决方法">3. 解决方法</h1><p>dubbo版本至少升级直2.6.3，这个版本对提供了对hessian协议的<code>attachments</code>支持。</p>
 <p><img src="/images/pasted-158.png" alt="upload successful"></p>
 <p>下面是部分代码，</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DubboHessianURLConnectionFactory</span> <span class="keyword">extends</span> <span class="title">HessianURLConnectionFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> HessianConnection <span class="title">open</span><span class="params">(URL url)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        HessianConnection connection = <span class="keyword">super</span>.open(url);</span><br><span class="line">        RpcContext context = RpcContext.getContext();</span><br><span class="line">        <span class="keyword">for</span> (String key : context.getAttachments().keySet()) &#123;</span><br><span class="line">            connection.addHeader(Constants.DEFAULT_EXCHANGER + key, context.getAttachment(key));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> connection;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -376,6 +385,15 @@
       <a href="/1193009570.html" title="[Java基础]正确使用CompletableFuture"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

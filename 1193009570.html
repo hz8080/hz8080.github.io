@@ -225,6 +225,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#线程池那些事"><span class="toc-text">2. 线程池那些事</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Java基础-正确使用CompletableFuture" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -264,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/1193009570.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 919(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 921(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
@@ -279,10 +288,10 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这个类是jdk8提供的类，在这个类之前的其他Future实现类，存在一些缺点，比如缺少一些任务完成的通知机制。  </p>
+<h1 id="前言">1. 前言</h1><p>这个类是jdk8提供的类，在这个类之前的其他Future实现类，存在一些缺点，比如缺少一些任务完成的通知机制。  </p>
 <p>于是<code>CompletableFuture</code>诞生了，他提供了任务回调的机制，还可以简洁的组合两个任务；更可以聚合n个任务，在任何一个任务完成的全部任务完成后进行某种操作。关于它的特性不多说。</p>
 <p>jdk8里的<code>ParallelStream</code>和<code>CompletableFuture</code>的出现让java的异步编程变的更为自然灵活。</p>
-<h1 id="线程池那些事"><a href="#线程池那些事" class="headerlink" title="线程池那些事"></a>线程池那些事</h1><p>jdk1.7老李设计了<code>ForkJoinPool</code>框架，核心就是任务窃取算法。<code>ForkJoinPool</code>有个通用线程池，他的工作线程数在多核环境下默认是<code>Runtime.getRuntime().availableProcessors() - 1</code>,也就“机器cpu的线程数 -  1“（减一可能是最佳实践吧），</p>
+<h1 id="线程池那些事">2. 线程池那些事</h1><p>jdk1.7老李设计了<code>ForkJoinPool</code>框架，核心就是任务窃取算法。<code>ForkJoinPool</code>有个通用线程池，他的工作线程数在多核环境下默认是<code>Runtime.getRuntime().availableProcessors() - 1</code>,也就“机器cpu的线程数 -  1“（减一可能是最佳实践吧），</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ForkJoinPool <span class="title">commonPool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// assert common != null : "static init error";</span></span><br><span class="line">    <span class="keyword">return</span> common;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><code>ParallelStream</code>新任务是只能提交到这个线程池的，而<code>CompletableFuture</code>默认使用这个线程池，但是也支持自己提供线程池。</p>
@@ -368,6 +377,15 @@ elapsed with Executor:1019 ms</code></pre><p>我的电脑是8线程，那么<cod
       <a href="/2168043814.html" title="[服务限流]接口限流"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

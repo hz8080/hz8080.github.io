@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#闭包函数不会执行"><span class="toc-text">1. 闭包函数不会执行</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#在执行块中使用-defer"><span class="toc-text">2. 在执行块中使用 defer</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#想要在函数执行完后对结果值进行嘿嘿嘿"><span class="toc-text">3. 想要在函数执行完后对结果值进行嘿嘿嘿</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Go基础-Go-defer的那些坑" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -262,7 +271,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3084756888.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 690(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 693(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -276,7 +285,7 @@
 <p>Go defer的那些坑不得不踩一下才爽</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="闭包函数不会执行"><a href="#闭包函数不会执行" class="headerlink" title="闭包函数不会执行"></a>闭包函数不会执行</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db := &amp;database&#123;&#125;</span><br><span class="line">	<span class="keyword">defer</span> db.connect()</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">"query db..."</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> database <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *database)</span> <span class="title">connect</span><span class="params">()</span> <span class="params">(disconnect <span class="keyword">func</span>()</span>)</span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">"connect"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"disconnect"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="闭包函数不会执行">1. 闭包函数不会执行</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db := &amp;database&#123;&#125;</span><br><span class="line">	<span class="keyword">defer</span> db.connect()</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">"query db..."</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> database <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *database)</span> <span class="title">connect</span><span class="params">()</span> <span class="params">(disconnect <span class="keyword">func</span>()</span>)</span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">"connect"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"disconnect"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>你猜输出结果，是这样的：</p>
 <pre><code>query db...
@@ -286,8 +295,8 @@ connect</code></pre><p><code>disconnect</code>并没有被打印出来，<code>c
 <blockquote>
 <p>题外话，我也不懂这种即连接又关闭的目的是什么，只是做个defer执行闭包的演示</p>
 </blockquote>
-<h1 id="在执行块中使用-defer"><a href="#在执行块中使用-defer" class="headerlink" title="在执行块中使用 defer"></a>在执行块中使用 defer</h1><p>defer是在函数执行完运行，而不是代码块执行完运行。</p>
-<h1 id="想要在函数执行完后对结果值进行嘿嘿嘿"><a href="#想要在函数执行完后对结果值进行嘿嘿嘿" class="headerlink" title="想要在函数执行完后对结果值进行嘿嘿嘿"></a>想要在函数执行完后对结果值进行嘿嘿嘿</h1><p>先看java的一段代码</p>
+<h1 id="在执行块中使用-defer">2. 在执行块中使用 defer</h1><p>defer是在函数执行完运行，而不是代码块执行完运行。</p>
+<h1 id="想要在函数执行完后对结果值进行嘿嘿嘿">3. 想要在函数执行完后对结果值进行嘿嘿嘿</h1><p>先看java的一段代码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LambdaTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(finalIntTest());</span><br><span class="line">        System.out.println(finalStringTest());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">finalIntTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">finalStringTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">        String a = <span class="string">"hi "</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> a;</span><br><span class="line">        &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">            a += <span class="string">"en"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>java想在函数返回前对返回结果进行修改，可以用finally直接修改，输出是这样的</p>
@@ -377,6 +386,15 @@ hi </code></pre><p>虽然<code>finally</code>块对<code>i</code>自增、对字
       <a href="/235536411.html" title="[Json]secure json"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

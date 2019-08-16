@@ -223,6 +223,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#场景"><span class="toc-text">1. 场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解决方法"><span class="toc-text">2. 解决方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二进制那些事"><span class="toc-text">3. 二进制那些事</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#amp-0xFF和上面的bug什么关系？"><span class="toc-text">4. &amp;0xFF和上面的bug什么关系？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#题外话"><span class="toc-text">5. 题外话</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-碧油鸡-浅谈0xFF" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -276,16 +285,16 @@
 <p>这是一个无符号数引发的bug</p>
 </blockquote>
 <a id="more"></a>
-<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>项目中使用了<code>Redis</code>的<code>BitMap</code>数据结构，关于它的用法就不赘述了。</p>
+<h1 id="场景">1. 场景</h1><p>项目中使用了<code>Redis</code>的<code>BitMap</code>数据结构，关于它的用法就不赘述了。</p>
 <p>我用<code>BitMap</code>来作为<code>ip</code>地址的黑名单模型，使用<code>ip</code>的<code>hashcode</code>作为<code>offset</code>，再合适不过。</p>
 <p>但是<code>ip</code>是一个32位的无符号数，而java是没有无符号数的，这就导致有些<code>ip</code>的<code>hashcode</code>是一个负数。</p>
 <p>java的做法是通过掩码的操作来进行有符号数到无符号数的转换。</p>
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p><code>hashCode() &amp; 0x00000000FFFFFFFFL</code></p>
+<h1 id="解决方法">2. 解决方法</h1><p><code>hashCode() &amp; 0x00000000FFFFFFFFL</code></p>
 <p>通过这行代码把<code>int转为long</code>，而且数值是无符号int的值</p>
 <blockquote>
 <p>java也有<code>BitMap</code>位图模型——<code>java.util.BitSet</code>,而且java的<code>BitSet</code>的api只能使用<code>大于0</code>的<code>int</code>作为<code>offset</code>，而redis是可以用long作为<code>offset</code>的。</p>
 </blockquote>
-<h1 id="二进制那些事"><a href="#二进制那些事" class="headerlink" title="二进制那些事"></a>二进制那些事</h1><blockquote>
+<h1 id="二进制那些事">3. 二进制那些事</h1><blockquote>
 <p>在java.io.FilterOutputStream.DataOutputStream：与机器无关地写入各种类型的数据以及String对象的二进制形式，从<strong>高位</strong>开始写。这样一来，任何机器上任何DataInputStream都能够读取它们。所有方法都以“write”开头，例如writeByte()，writeFloat()等。<br>java.io.FilterOutputStream.PrintStream最初的目的是为了以可视化格式打印所有的基本数据类型以及String对象。这和DataOutputStream不同，它目的是将数据元素置入“流”中，使DataInputStream能够可移植地重构它们。</p>
 </blockquote>
 <p><strong>如何把一串字符串写成二进制？</strong></p>
@@ -313,11 +322,11 @@
 <pre><code>1000,0000,0000,0011     short的二进制原码
 1000,0000,0000,0011     &gt;&gt;&gt;0还是源码本身不变</code></pre><p>然后再 &amp;0XFF，得到</p>
 <pre><code>0000,0011（准确的说是 0000 0000 0000 0011）</code></pre><p>所以 <code>&amp;0xFF</code> 就像计算机中的一把剪刀，用来截取一个byte。同理，<code>&amp;0x0F</code>呢？得到4bits有效值。</p>
-<h1 id="amp-0xFF和上面的bug什么关系？"><a href="#amp-0xFF和上面的bug什么关系？" class="headerlink" title="&amp;0xFF和上面的bug什么关系？"></a>&amp;0xFF和上面的bug什么关系？</h1><p>既然实际上<code>Redis</code>的java客户端<code>Jedis</code>的位图api是这样的</p>
+<h1 id="amp-0xFF和上面的bug什么关系？">4. &amp;0xFF和上面的bug什么关系？</h1><p>既然实际上<code>Redis</code>的java客户端<code>Jedis</code>的位图api是这样的</p>
 <pre><code>public void setbit(byte[] key, long offset, boolean value)</code></pre><p><code>offset</code>是一个long值，那么传入一个int类型的hashcode必然会强转。<br>如果一个ip是<code>128.xxx.xxx.xxx</code>，那么二进制是<code>10000000 xxxxxxxx xxxxxxxx xxxxxxxx</code>，hashcode就是一个负数，一个负的int转成long之后，对于计算机为了保持补码数值不变，高位得自动补1，所以得到</p>
 <pre><code>11111111 11111111 11111111 11111111 10000000 xxxxxxxx xxxxxxxx xxxxxxxx</code></pre><p>可我们想得到的期望数是</p>
 <pre><code>00000000 00000000 00000000 00000000 10000000 xxxxxxxx xxxxxxxx xxxxxxxx</code></pre><p>这时候我们就要一把剪刀<code>&amp; 0x00000000FFFFFFFFL</code>来剪一下，得到我们的期望数。</p>
-<h1 id="题外话"><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h1><p>既然我们的<code>DataOutputstrem</code>是要write一个byte，为什么要用<code>int</code>入参引来一把剪刀的麻烦，其实是java没有无符号数的麻烦。  </p>
+<h1 id="题外话">5. 题外话</h1><p>既然我们的<code>DataOutputstrem</code>是要write一个byte，为什么要用<code>int</code>入参引来一把剪刀的麻烦，其实是java没有无符号数的麻烦。  </p>
 <p>这其实和read()对应，read()是返回0-255的数据，和 -1 代表文件末尾，所以没有无符号数的java只能用read返回int。</p>
 
       
@@ -385,6 +394,15 @@
       <a href="/92838208.html" title="[集合扩容]HashMap的扩容机制及jdk8优化——resize()"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   

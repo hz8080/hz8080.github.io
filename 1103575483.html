@@ -226,6 +226,15 @@
 
   
   
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#HTTPS简介"><span class="toc-text">1. HTTPS简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#另一篇关于Https的博文"><span class="toc-text">2. 另一篇关于Https的博文</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
 <main class="main" role="main">
   <div class="content">
   <article id="post-Chrome小绿锁-Https那些事" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
@@ -281,7 +290,7 @@
 <a id="more"></a>
 
 <p>介是<a href="http://www.cnblogs.com/zhuqil/archive/2012/07/23/2604572.html" target="_blank" rel="noopener">原博</a></p>
-<h1 id="HTTPS简介"><a href="#HTTPS简介" class="headerlink" title="HTTPS简介"></a>HTTPS简介</h1><p>HTTPS其实是有两部分组成：HTTP + SSL / TLS，也就是在HTTP上又加了一层处理加密信息的模块。服务端和客户端的信息传输都会通过TLS进行加密，所以传输的数据都是加密后的数据。具体是如何进行加密，解密，验证的，且看下图。</p>
+<h1 id="HTTPS简介">1. HTTPS简介</h1><p>HTTPS其实是有两部分组成：HTTP + SSL / TLS，也就是在HTTP上又加了一层处理加密信息的模块。服务端和客户端的信息传输都会通过TLS进行加密，所以传输的数据都是加密后的数据。具体是如何进行加密，解密，验证的，且看下图。</p>
 <p><img src="/images/pasted-64.png" alt="upload successful"></p>
 <ol>
 <li><p><strong>客户端发起HTTPS请求</strong><br>这个没什么好说的，就是用户在浏览器里输入一个https网址，然后连接到server的443端口(默认443)。</p>
@@ -302,7 +311,7 @@
 </li>
 </ol>
 <p>以上是Https的过程。</p>
-<h1 id="另一篇关于Https的博文"><a href="#另一篇关于Https的博文" class="headerlink" title="另一篇关于Https的博文"></a>另一篇关于Https的博文</h1><p>SSL介于应用层和TCP层之间。应用层数据不再直接传递给传输层，而是传递给SSL层，SSL层对从应用层收到的数据进行加密，并增加自己的SSL头。<br><img src="/images/pasted-66.png" alt="upload successful"><br>RSA性能是非常低的，原因在于寻找大素数、大数计算、数据分割需要耗费很多的CPU周期，所以一般的HTTPS连接只在第一次握手时使用非对称加密，通过握手交换对称加密密钥，在之后的通信走对称加密。<br>[<a href="http://www.cnblogs.com/ttltry-air/archive/2012/08/20/2647898.html]" target="_blank" rel="noopener">http://www.cnblogs.com/ttltry-air/archive/2012/08/20/2647898.html]</a></p>
+<h1 id="另一篇关于Https的博文">2. 另一篇关于Https的博文</h1><p>SSL介于应用层和TCP层之间。应用层数据不再直接传递给传输层，而是传递给SSL层，SSL层对从应用层收到的数据进行加密，并增加自己的SSL头。<br><img src="/images/pasted-66.png" alt="upload successful"><br>RSA性能是非常低的，原因在于寻找大素数、大数计算、数据分割需要耗费很多的CPU周期，所以一般的HTTPS连接只在第一次握手时使用非对称加密，通过握手交换对称加密密钥，在之后的通信走对称加密。<br>[<a href="http://www.cnblogs.com/ttltry-air/archive/2012/08/20/2647898.html]" target="_blank" rel="noopener">http://www.cnblogs.com/ttltry-air/archive/2012/08/20/2647898.html]</a></p>
 
       
     </div>
@@ -369,6 +378,15 @@
       <a href="/3621931521.html" title="[分布式]哈希一致性"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
     
   </ul>
   
