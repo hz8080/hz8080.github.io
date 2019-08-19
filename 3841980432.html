@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-08-19T09:05:51.878Z">
+<meta property="og:updated_time" content="2019-08-19T09:07:00.023Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]Raft和ZAB的异同">
 <meta name="twitter:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
@@ -313,8 +313,9 @@
 <li>转发给leader</li>
 <li>leader封装为<strong>一个</strong><code>proposal</code>，写入日志，发送给followers</li>
 <li>follower执行<strong>接收逻辑</strong>，如果成功写入文件，返回true</li>
-<li>leader收到过半成功回复就提交<code>proposal</code>，同时广播一个<code>commit</code>消息，通知followers提交提议<h3 id="接收逻辑">5.2.2. 接收逻辑</h3>Raft：如果<code>prevLogIndex</code>和<code>prevLogTerm</code>不匹配，返回false，由leader调整，从而达到在写请求再同步数据的目的  </li>
+<li>leader收到过半成功回复就提交<code>proposal</code>，同时广播一个<code>commit</code>消息，通知followers提交提议</li>
 </ol>
+<h3 id="接收逻辑">5.2.2. 接收逻辑</h3><p>Raft：如果<code>prevLogIndex</code>和<code>prevLogTerm</code>不匹配，返回false，由leader调整，从而达到在写请求再同步数据的目的  </p>
 <p>ZAB：没有什么特别的，接收到<code>proposal</code>写入文件，接收到<code>commit</code>提交日志</p>
 <h1 id="旧leader数据">6. 旧leader数据</h1><p>这个是指旧leader崩溃后，新leader对旧数据的处理</p>
 <p>Raft：保守，过半或未过半日志都是未提交。只能提交当前term的日志，如果提交了当前日志，那么旧term的日志也会被一波提交（旧term的日志只能被间接提交）。允许出现未提交的数据被覆盖。</p>
