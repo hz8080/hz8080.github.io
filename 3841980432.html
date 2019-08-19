@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-08-19T09:04:46.604Z">
+<meta property="og:updated_time" content="2019-08-19T09:05:51.878Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]Raft和ZAB的异同">
 <meta name="twitter:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
@@ -325,7 +325,8 @@
 <p>ZAB：follower和leader断开连接，重新加入集群</p>
 <h1 id="挂了的机器加入一个选举完成的集群（不是新加机器）">9. 挂了的机器加入一个选举完成的集群（不是新加机器）</h1><p>Raft：leader会对follower进行RPCs重试，所以恢复的follower会收到leader的心跳请求。</p>
 <p>ZAB：恢复的follower会学习集群中的投票结果，可以识别到leader</p>
-<h1 id="日志复制的顺序">10. 日志复制的顺序</h1><p>Raft：由leader维护log顺序。如果follower重启，不会阻塞leader写入请求，会按照leader顺序追赶日志；如果leader挂了，新leader也可以将旧term、新term日志按顺序提交。<br>ZAB：由leader维护log顺序。如果follower重启，会获取leader读锁，leader<strong>阻塞</strong>写入请求，接着追赶差异，获取leader已提交<code>proposal</code>和未提交`proposal，然后再释放leader读锁；如果leader重启，新leader选举后会进行数据同步</p>
+<h1 id="日志复制的顺序">10. 日志复制的顺序</h1><p>Raft：由leader维护log顺序。如果follower重启，不会阻塞leader写入请求，会按照leader顺序追赶日志；如果leader挂了，新leader也可以将旧term、新term日志按顺序提交。</p>
+<p>ZAB：由leader维护log顺序。如果follower重启，会获取leader读锁，leader<strong>阻塞</strong>写入请求，接着追赶差异，获取leader已提交<code>proposal</code>和未提交`proposal，然后再释放leader读锁；如果leader重启，新leader选举后会进行数据同步</p>
 <h1 id="总结">11. 总结</h1><p>Raft是在想解决PAXOS过于复杂的缺点的背景下提出来的一个一致性算法，之前也看过ZAB协议，感觉Raft可用性比ZAB高很多，很有兴趣实现一个Raft算法。</p>
 <h1 id="参考">12. 参考</h1><ol>
 <li><a href="https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md" target="_blank" rel="noopener">寻找一种易于理解的一致性算法（扩展版）</a>Raft论文汉化</li>
