@@ -26,10 +26,12 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-08-22T09:25:39.400Z">
+<meta property="og:image" content="https://htchz.cc/images/20190822194828.png">
+<meta property="og:updated_time" content="2019-08-22T11:55:46.710Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]Raft和ZAB的异同">
 <meta name="twitter:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
+<meta name="twitter:image" content="https://htchz.cc/images/20190822194828.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/3841980432.html">
   
@@ -269,10 +271,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3841980432.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.9k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 7(分)</span>
 	
 
       </div>
@@ -328,9 +330,11 @@
 <p>ZAB：恢复的follower会学习集群中的投票结果，可以识别到leader</p>
 <h1 id="日志复制的顺序">10. 日志复制的顺序</h1><p>Raft：由leader维护log顺序。如果follower重启，不会阻塞leader写入请求，会按照leader顺序追赶日志；如果leader挂了，新leader也可以将旧term、新term日志按顺序提交。</p>
 <p>ZAB：由leader维护log顺序。如果follower重启，会获取leader读锁，leader<strong>阻塞</strong>写入请求，接着追赶差异，获取leader已提交<code>proposal</code>和未提交<code>proposal</code>，然后再释放leader读锁；如果leader重启，新leader选举后会进行数据同步</p>
-<h1 id="集群成员变更">11. 集群成员变更</h1><p>集群配置不能一下子全切换，否则同一个时期可能会出现两个leader。<br>Raft：使用两阶段变更。旧配置为<code>C-old</code>，新配置为<code>C-new</code>，<code>C-old-new</code>表示中间配置。配置变更命令由客户端发起，leader以log传播<code>C-old-new</code>，等<code>C-old-new</code>提交之后，再广播<code>C-new</code>配置。注意，在<code>C-old-new</code>提交但未完全复制时，集群还是可能分裂成两个大多数，所以要限制<strong>一次变更只能添加或删除一个成员</strong>，如果要变更多个成员，需要执行多次成员变更。</p>
-<p>ZAB：3.5版本以前是停机的，3.5开始使用了动态变更成员，也不知道怎么做的。想必比Raft难理解😎。</p>
-<h1 id="总结">12. 总结</h1><p>Raft是在想解决PAXOS过于复杂的缺点的背景下提出来的一个一致性算法，之前也看过ZAB协议，感觉Raft可用性比ZAB高很多，很有兴趣实现一个Raft算法。</p>
+<h1 id="集群成员变更">11. 集群成员变更</h1><p>集群配置不能一下子全切换，否则同一个时期可能会出现两个leader。<br>Raft：使用两阶段变更。旧配置为<code>C-old</code>，新配置为<code>C-new</code>，<code>C-old-new</code>表示中间配置。配置变更命令由客户端发起，leader以log传播<code>C-old-new</code>，等<code>C-old-new</code>提交之后，再广播<code>C-new</code>配置，这时不在<code>C-new</code>里的机器就要自觉退出。Raft论文参与者后来还提出一个一阶段变更，提出限制<strong>一次变更只能添加或删除一个成员</strong>来简化问题，如果要变更多个成员，需要执行多次成员变更。</p>
+<p>ZAB：3.5版本以前是停机的，但停机变更也有问题，3.5开始使用了动态变更成员，出门左转<a href="https://zhuanlan.zhihu.com/p/57128195" target="_blank" rel="noopener">Zab协议中的动态成员变更</a>，比Raft难理解😐，反正我是看不下去😐。</p>
+<h1 id="总结">12. 总结</h1><p>Raft是在想解决PAXOS过于复杂的缺点的背景下提出来的一个一致性算法，之前也看过ZAB协议，感觉Raft可用性比ZAB高很多。</p>
+<p>不过有个问题让我迷惑是，在两阶段成员变更方案里，如果提交了<code>C-old-new</code>后，还有旧的Server1，Server2没有复制到，Server1，Server2的配置还是<code>C-old</code><br><img src="../images/20190822194828.png" alt><br>这时候Server1，Server2发生了网络分区，那么这两台服务器还是可以产生基于<code>C-old</code>的leader，而Server3，Server4，Server5形成另一个<strong>majority</strong>，也可以产生一个leader，不一样还会出现双leader问题么？若使用一阶段成员变更，就可以阻止多个majority产生，杜绝这种情况吧。</p>
+<p>很有兴趣实现一个Raft算法。</p>
 <h1 id="参考">13. 参考</h1><ol>
 <li><a href="https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md" target="_blank" rel="noopener">寻找一种易于理解的一致性算法（扩展版）</a>Raft论文汉化</li>
 <li><a href="https://raft.github.io/raft.pdf" target="_blank" rel="noopener">In Search of an Understandable Consensus Algorithm(Extended Version)</a>Raft论文原版</li>
