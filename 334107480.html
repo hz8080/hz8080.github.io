@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言说实话被问到这个问题不下3次了，不过每次都不是回到得很好，并不是不会，而是没有去总结，以至于被问起的时候总是两三句话就结束了。这一次想好好总结，具体也不深入，讲一讲大致流程。 2. 过程2.1. DNS向DNS发起请求，通常是udp协议，获得域名对应的ip地址。 查找顺序是：浏览器缓存 -&amp;gt; 操作系统缓存 -&amp;gt; 路由器缓存 -&amp;gt; ISP的DNS缓存 -&amp;gt; 根服务器">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-08-27T08:25:40.753Z">
+<meta property="og:updated_time" content="2019-08-28T10:00:48.808Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[网络]在浏览器输入一个url到页面展现发生了什么">
 <meta name="twitter:description" content="1. 前言说实话被问到这个问题不下3次了，不过每次都不是回到得很好，并不是不会，而是没有去总结，以至于被问起的时候总是两三句话就结束了。这一次想好好总结，具体也不深入，讲一讲大致流程。 2. 过程2.1. DNS向DNS发起请求，通常是udp协议，获得域名对应的ip地址。 查找顺序是：浏览器缓存 -&amp;gt; 操作系统缓存 -&amp;gt; 路由器缓存 -&amp;gt; ISP的DNS缓存 -&amp;gt; 根服务器">
@@ -269,7 +269,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/334107480.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.1k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.2k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 4(分)</span>
@@ -302,7 +302,7 @@
 <blockquote>
 <p>更多信息http2可参见<a href="https://juejin.im/post/5c4e6d11e51d4534dc477f05" target="_blank" rel="noopener">再谈HTTP2性能提升之背后原理—HTTP2历史解剖</a>。本站也有启用http2。</p>
 </blockquote>
-<h2 id="HTTPS">2.6. HTTPS</h2><p>如果启用用HTTPS，客户端会校验服务端的证书，根据证书和服务器协商一个对称加密算法和一个密钥，这一部分是RSA非堆成加密，之后客户端和服务端会使用这个算法和密钥进行数据加密传输。HTTPS的原理出门左转<a href="https://zhuanlan.zhihu.com/p/26684050" target="_blank" rel="noopener">TLS完全指南（一）：TLS和安全通信</a>。</p>
+<h2 id="HTTPS">2.6. HTTPS</h2><p>如果启用用HTTPS，客户端会校验服务端的证书，根据证书和服务器协商一个对称加密算法和一个密钥，这一部分是RSA非堆成加密，之后客户端和服务端会使用这个算法和密钥进行数据加密传输。HTTPS的原理出门左转<a href="https://zhuanlan.zhihu.com/p/26684050" target="_blank" rel="noopener">TLS完全指南（一）：TLS和安全通信</a>，这文章讲了HTTPS的部分内容，主要内容是证书方面的内容；还有一部分内容看<a href="http://www.ruanyifeng.com/blog/2014/09/illustration-ssl.html" target="_blank" rel="noopener">图解SSL/TLS协议</a>，主要补充了用DH算法代替RSA进行密钥交换，避免了密钥在网络中传输。</p>
 <h2 id="TCP拥塞控制">2.7. TCP拥塞控制</h2><p>TCP需要拥塞控制逻辑使用网络不好的情况，详见<a href="./3284953854.html">TCP拥塞控制那些事</a>。</p>
 <h2 id="应用">2.8. 应用</h2><p>关于应用层面的就不说了。</p>
 <h2 id="TCP四次挥手">2.9. TCP四次挥手</h2><p>发送端和接收端之间进行四次挥手断开连接，接着主动断开的端口进入<code>FIN_WAIT_1</code>，收到<strong>ACK报文</strong>后进入<code>FIN_WAIT_2</code>,收到接收端的<strong>FIN报文</strong>后最终会进入<code>TIME_WAIT</code>状态， 默认保持<code>2MSL</code>的不可用时间，防止<strong>相同五元组</strong>的连接建立后，收到上一代连接的重复报文，而产生混乱。被动断开的端口先进入<code>CLOSE_WAIT</code>，由服务器执行断开后发送<strong>FIN报文</strong>进入<code>LAST_ACK</code>状态，收到客户端<strong>ACK报文</strong>进入<code>CLOSED</code>状态。</p>
