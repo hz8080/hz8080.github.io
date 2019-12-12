@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-12T10:49:57.189Z">
+<meta property="og:updated_time" content="2019-12-12T10:50:07.137Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -310,7 +310,7 @@
 <p>上一节里，假设事务隔离级别是<strong>RR</strong>，事务id大小顺序是：X &lt; C &lt; A &lt; B &lt; D(D是未开启的事务Id),</p>
 <p>那么C事务第一次查询创建一个<strong>read view</strong>，<code>up_limit_id</code>为C，<code>low_limit_id</code>为B，<code>descriptors</code>为{C，A}，这时记录的<code>DB_TRX_ID</code>是X，A &gt; X，说明记录可见。</p>
 <p>当A事务更新完毕B事务更新完毕后，C事务执行第二次查询，<strong>read view</strong>还是最开始的那个，此时记录的<code>DB_TRX_ID</code>是B，&gt;= <code>low_limit_id</code>， 因此这条记录肯定不可以被看见，需要沿着历史版本找。</p>
-<p>记录的前一个版本的<code>DATA_TRX_ID</code>是A，在<code>up_limit_id</code>和<code>low_limit_id</code>之间, 且在<code>descriptors</code>之间，所以此版本还是不可以被看见，继续往历史版本找。</p>
+<p>记录的前一个版本的<code>DB_TRX_ID</code>是A，在<code>up_limit_id</code>和<code>low_limit_id</code>之间, 且在<code>descriptors</code>之间，所以此版本还是不可以被看见，继续往历史版本找。</p>
 <p>前一个版本的<code>DATA_TRX_ID</code>是X，&lt; <code>up_limit_id</code>, 所以该版本可见，所以C事务第二次查询结果依旧是：<br>|  column_1|column_2  |<br>|  —-  | —-  |<br>| 1  | 2 |<br>这就做到了可重复读。</p>
 <p><strong>如果是RC呢？</strong></p>
 <p>C事务执行第二次查询，创建新的<strong>read view</strong>，<code>up_limit_id</code>为C，<code>low_limit_id</code>为D，<code>descriptors</code>为{C}，此时记录的<code>DB_TRX_ID</code>是B，在<code>up_limit_id</code>和<code>low_limit_id</code>之间，但是不在在<code>descriptors</code>之中，所以记录是可见的，也就是说C事务可以读到B事务提交的结果，这就是RC快照读的实现。</p>
