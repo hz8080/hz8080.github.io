@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-18T08:04:33.852Z">
+<meta property="og:updated_time" content="2019-12-18T08:05:07.570Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -364,7 +364,7 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>2</td>
+<td><strong>2</strong></td>
 <td>2</td>
 </tr>
 </tbody></table>
@@ -379,7 +379,7 @@
 </thead>
 <tbody><tr>
 <td>2</td>
-<td>22</td>
+<td><strong>22</strong></td>
 </tr>
 </tbody></table>
 <p>这就看到B事务的修改结果了，幻读来啦。</p>
