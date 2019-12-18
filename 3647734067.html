@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-18T08:05:07.570Z">
+<meta property="og:updated_time" content="2019-12-18T08:08:04.617Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -298,13 +298,13 @@
 <table>
 <thead>
 <tr>
-<th>column_1</th>
-<th>column_2</th>
+<th align="center">column_1</th>
+<th align="center">column_2</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>1</td>
-<td>2</td>
+<td align="center">1</td>
+<td align="center">2</td>
 </tr>
 </tbody></table>
 <p>接着A事务执行更新<strong>column_1</strong>为11；<br>具体过程是：给记录加X锁，复制记录为<strong>undo_log_1</strong>，然后再将记录的<strong>column_1</strong>改为11，<code>DB_TRX_ID</code>为A，<code>DB_ROLL_PTR</code>指向前一个版本。<br><img src="../images/20191212171048.png" alt><br>A事务提交，释放X锁。</p>
@@ -329,13 +329,13 @@
 <table>
 <thead>
 <tr>
-<th>column_1</th>
-<th>column_2</th>
+<th align="center">column_1</th>
+<th align="center">column_2</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>1</td>
-<td>2</td>
+<td align="center">1</td>
+<td align="center">2</td>
 </tr>
 </tbody></table>
 <p>这就做到了可重复读。</p>
@@ -346,26 +346,26 @@
 <table>
 <thead>
 <tr>
-<th>column_1</th>
-<th>column_2</th>
+<th align="center">column_1</th>
+<th align="center">column_2</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>1</td>
-<td>2</td>
+<td align="center">1</td>
+<td align="center">2</td>
 </tr>
 </tbody></table>
 <p>此时B事务更新这行记录并提交：</p>
 <table>
 <thead>
 <tr>
-<th>column_1</th>
-<th>column_2</th>
+<th align="center">column_1</th>
+<th align="center">column_2</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>2</strong></td>
-<td>2</td>
+<td align="center"><strong>2</strong></td>
+<td align="center">2</td>
 </tr>
 </tbody></table>
 <p>A事务执行第二次查询的话，按照上面的分析，结果应该是和第一次是一样的。</p>
@@ -373,13 +373,13 @@
 <table>
 <thead>
 <tr>
-<th>column_1</th>
-<th>column_2</th>
+<th align="center">column_1</th>
+<th align="center">column_2</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>2</td>
-<td><strong>22</strong></td>
+<td align="center">2</td>
+<td align="center"><strong>22</strong></td>
 </tr>
 </tbody></table>
 <p>这就看到B事务的修改结果了，幻读来啦。</p>
