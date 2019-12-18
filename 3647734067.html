@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-18T08:03:57.678Z">
+<meta property="og:updated_time" content="2019-12-18T08:04:33.852Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -354,11 +354,8 @@
 <td>1</td>
 <td>2</td>
 </tr>
-<tr>
-<td>此时B事务更新这行记录并提交：</td>
-<td></td>
-</tr>
 </tbody></table>
+<p>此时B事务更新这行记录并提交：</p>
 <table>
 <thead>
 <tr>
@@ -370,11 +367,8 @@
 <td>2</td>
 <td>2</td>
 </tr>
-<tr>
-<td>A事务执行第二次查询的话，按照上面的分析，结果应该是和第一次是一样的。</td>
-<td></td>
-</tr>
 </tbody></table>
+<p>A事务执行第二次查询的话，按照上面的分析，结果应该是和第一次是一样的。</p>
 <p>但是如果A事务将这行记录修改<code>set column_2 = 22</code>的话，第三次查询的结果集应该是这样：</p>
 <table>
 <thead>
@@ -387,11 +381,8 @@
 <td>2</td>
 <td>22</td>
 </tr>
-<tr>
-<td>这就看到B事务的修改结果了，幻读来啦。</td>
-<td></td>
-</tr>
 </tbody></table>
+<p>这就看到B事务的修改结果了，幻读来啦。</p>
 <p>如果B事务执行<strong>insert</strong>操作，A事务对这条新记录进行修改的话，也会发生幻读。</p>
 <h2 id="题外话">2.5. 题外话</h2><p>在InnoDB里面有两种事务，一种是读写事务，就是会对数据进行修改的事务，另外一种是只读事务，仅仅对数据进行读取。开启一个读写事务要做的事比开启一个只读事务多许多，需要分配回滚段来记录undo log，需要把读写事务加入到全局读写事务链表，把事务id加入活跃读写事务数组中，所以你的事务没有写操作的话，声明为只读事务是个不错的优化。</p>
 <h1 id="后记">3. 后记</h1><p>在这之前，不明白为什么事务可以临时指定隔离级别，临时指定不需要其他事务配合么，现在应该懂了😎，不过事务还有好多不懂😎</p>
