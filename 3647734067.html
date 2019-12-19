@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-19T02:46:05.650Z">
+<meta property="og:updated_time" content="2019-12-19T07:45:57.985Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -293,7 +293,7 @@
 <h1 id="实现">2. 实现</h1><h2 id="隐藏字段">2.1. 隐藏字段</h2><p>Innodb每一行都有三个隐藏字段，分别是<code>DB_ROW_ID</code>、<code>DB_TRX_ID</code>、<code>DB_ROLL_PTR</code>。</p>
 <p><code>DB_ROW_ID</code>：如果表没有设置主键，可以用来作为记录的主键，因为<strong>Innodb</strong>使用聚簇索引的方式存储，记录必须有主键。<br><code>DB_TRX_ID</code>：记录修改这行记录事务的id。<br><code>DB_ROLL_PTR</code>：指向这行记录的前一个版本。</p>
 <h2 id="undo-log">2.2. undo log</h2><p>多版本其实是用<strong>undo log</strong>来实现的，<strong>undo log</strong>听起来是做回滚使用的，没错，但是事务提交后<strong>undo log</strong>可不会立刻清除，它作为历史版本存在着。只有当前没有事务依赖在这行记录上时，mysql的清理线程才会清理掉无用的<strong>undo log</strong>。</p>
-<p><code>insert</code>操作的<strong>undo log</strong>在事务回滚或提交后就会删除，因为只有回滚会用到。<br><code>update</code>、<code>delete</code>的<strong>undo log</strong>需要保留（可见<code>delete</code>只是逻辑删除，其实也是个<code>update</code>操作）。</p>
+<p><code>insert</code>操作的<strong>undo log</strong>在事务回滚或提交后就会删除，因为只有回滚会用到。<br><code>update</code>、<code>delete</code>的<strong>undo log</strong>需要保留（可见<code>delete</code>只是逻辑删除，其实也是个<code>update</code>操作，逻辑删除后由后台线程清理）。</p>
 <p>下面假设有一条记录如下，<strong>column_1</strong>、<strong>column_2</strong>初始值为1和2。<br><img src="../images/20191212171021.png" alt><br>假设这时有个三个事务ABC，A,C事务开始，对这条记录的查询结果如下：</p>
 <table>
 <thead>
