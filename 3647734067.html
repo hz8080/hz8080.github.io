@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-20T03:05:27.578Z">
+<meta property="og:updated_time" content="2019-12-20T03:08:14.446Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -321,7 +321,7 @@
 <p>如果记录上的<code>trx_id</code>在<code>up_limit_id</code>和<code>low_limit_id</code>之间，且<code>trx_id</code>在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改是在readview创建之后，被另外一个活跃事务所修改，所以这条记录也不可以被看见。如果<code>trx_id</code>不在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改在readview创建之前，所以可以看到。</p>
 <p>基于上述判断，如果记录不可见，则尝试使用undo去构建老的版本(row_vers_build_for_consistent_read)，直到找到可以被看见的记录或者解析完所有的undo。</p>
 </blockquote>
-<p>上一节里，假设事务隔离级别是<strong>RR</strong>，事务id大小顺序是：X &lt; C &lt; A &lt; B &lt; D(D是未开启的事务Id),</p>
+<p>上一节里，假设事务隔离级别是<strong>RR</strong>，事务id大小顺序是：X &lt; C &lt; A &lt; B &lt; D(D是未开启的事务Id)，事务都是读写事务（只读事务不会加入<strong>read view</strong>）</p>
 <p>那么C事务第一次查询创建一个<strong>read view</strong>，<code>up_limit_id</code>为C，<code>low_limit_id</code>为B，<code>descriptors</code>为{C，A}，这时记录的<code>DB_TRX_ID</code>是X，A &gt; X，说明记录可见。</p>
 <p>当A事务更新完毕B事务更新完毕后，C事务执行第二次查询，<strong>read view</strong>还是最开始的那个，此时记录的<code>DB_TRX_ID</code>是B，&gt;= <code>low_limit_id</code>， 因此这条记录肯定不可以被看见，需要沿着历史版本找。</p>
 <p>记录的前一个版本的<code>DB_TRX_ID</code>是A，在<code>up_limit_id</code>和<code>low_limit_id</code>之间, 且在<code>descriptors</code>之间，所以此版本还是不可以被看见，继续往历史版本找。</p>
