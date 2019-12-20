@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-19T07:45:57.985Z">
+<meta property="og:updated_time" content="2019-12-20T03:05:27.578Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -273,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3647734067.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.8k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.9k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
@@ -318,7 +318,7 @@
 <blockquote>
 <p>如果记录上的<code>trx_id</code>小于<code>read_view_t-&gt;up_limit_id</code>，则说明这条记录的最后修改在readview创建之前，因此这条记录可以被看见。</p>
 <p>如果记录上的<code>trx_id</code>大于等于<code>read_view_t-&gt;low_limit_id</code>，则说明这条记录的最后修改在readview创建之后，因此这条记录肯定不可以被看见。</p>
-<p>如果记录上的<code>trx_id</code>在<code>up_limit_id</code>和<code>low_limit_id</code>之间，且<code>trx_id</code>在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改是在readview创建之时，被另外一个活跃事务所修改，所以这条记录也不可以被看见。如果<code>trx_id</code>不在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改在readview创建之前，所以可以看到。</p>
+<p>如果记录上的<code>trx_id</code>在<code>up_limit_id</code>和<code>low_limit_id</code>之间，且<code>trx_id</code>在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改是在readview创建之后，被另外一个活跃事务所修改，所以这条记录也不可以被看见。如果<code>trx_id</code>不在<code>read_view_t-&gt;descriptors</code>之中，则表示这条记录的最后修改在readview创建之前，所以可以看到。</p>
 <p>基于上述判断，如果记录不可见，则尝试使用undo去构建老的版本(row_vers_build_for_consistent_read)，直到找到可以被看见的记录或者解析完所有的undo。</p>
 </blockquote>
 <p>上一节里，假设事务隔离级别是<strong>RR</strong>，事务id大小顺序是：X &lt; C &lt; A &lt; B &lt; D(D是未开启的事务Id),</p>
@@ -343,7 +343,9 @@
 <p>C事务执行第二次查询，创建新的<strong>read view</strong>，<code>up_limit_id</code>为C，<code>low_limit_id</code>为D，<code>descriptors</code>为{C}，此时记录的<code>DB_TRX_ID</code>是B，在<code>up_limit_id</code>和<code>low_limit_id</code>之间，但是不在在<code>descriptors</code>之中，所以记录是可见的，也就是说C事务可以读到B事务提交的结果，这就是RC快照读的实现。</p>
 <h2 id="幻读">2.4. 幻读</h2><p>RR级别下，在一个事务里，如果全程只进行快照读操作，那么是不会发生幻读的；如果事务进行快照读又进行了写操作，那么就会发生幻读。</p>
 <p>可以用当前读解决幻读。</p>
-<h2 id="题外话">2.5. 题外话</h2><p>在InnoDB里面有两种事务，一种是读写事务，就是会对数据进行修改的事务，另外一种是只读事务，仅仅对数据进行读取。开启一个读写事务要做的事比开启一个只读事务多许多，需要分配回滚段来记录undo log，需要把读写事务加入到全局读写事务链表，把事务id加入活跃读写事务数组中，所以你的事务没有写操作的话，声明为只读事务是个不错的优化。</p>
+<h2 id="题外话">2.5. 题外话</h2><p>在InnoDB里面有两种事务模式，一种是读写事务，就是会对数据进行修改的事务，另外一种是只读事务，仅仅对数据进行读取。开启一个读写事务要做的事比开启一个只读事务多许多，需要分配回滚段来记录undo log，需要把读写事务加入到全局读写事务链表，把事务id加入活跃读写事务数组中，所以你的事务没有写操作的话，声明为只读事务是个不错的优化。</p>
+<p>5.6 如果要开始只读事务，需要显式指明事务模式为只读；</p>
+<p>5.7如果不指明事务模式，mysql会初始化为只读事务，如果发生写操作，再将事务提升为读写事务，分配回滚段，分配事务id（只读事务也有id啦），加入读写事务链表。<br>5.7如果一次<strong>read view</strong>使用完后，没有新的读写事务创建，那么可以给下一个事务复用。</p>
 <h1 id="后记">3. 后记</h1><p>在这之前，不明白为什么事务可以临时指定隔离级别，临时指定不需要其他事务配合么，现在应该懂了😎，不过事务还有好多不懂😎</p>
 <h1 id="参考">4. 参考</h1><ol>
 <li><a href="http://mysql.taobao.org/monthly/2017/12/01/" target="_blank" rel="noopener">MySQL · 引擎特性 · InnoDB 事务系统</a></li>
