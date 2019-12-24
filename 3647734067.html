@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20191212171021.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171048.png">
 <meta property="og:image" content="https://htchz.cc/images/20191212171106.png">
-<meta property="og:updated_time" content="2019-12-20T03:08:14.446Z">
+<meta property="og:updated_time" content="2019-12-24T09:20:34.685Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]Innodb的快照读实现">
 <meta name="twitter:description" content="1. 前言有一次面试，面试官问我：mysql事务隔离级别有哪些？我：balabala……面试官问：那可重复读是怎么实现的？我：emm。。第一次读会有快照。。面试官：嗯。。我：。。。 然后呢，然后就不知道啦。 事实上，Innodb的RC和RR隔离级别下，读有快照读（snapshot read）和当前读（current read）之分，当前读就是SELECT ... LOCK IN SHARE MOD">
@@ -276,7 +276,7 @@
 		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.9k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 7(分)</span>
 	
 
       </div>
@@ -287,7 +287,7 @@
 <p>然后呢，然后就不知道啦。</p>
 <p>事实上，Innodb的RC和RR隔离级别下，读有<strong>快照读（snapshot read）</strong>和<strong>当前读（current read）</strong>之分，<strong>当前读</strong>就是<code>SELECT ... LOCK IN SHARE MODE</code>和<code>SELECT ... FOR UPDATE</code>，快照读就是普通的<code>SELECT</code>操作。</p>
 <p><strong>快照读</strong>的实现，利用了<strong>undo log</strong>和<strong>read view</strong>。</p>
-<p><strong>快照读并没有快照！</strong></p>
+<p><strong>快照读不是在读的时候生层快照，而是在写的时候保留了旧版本数据。</strong></p>
 <p><strong>快照读</strong>实现了<strong>Multi-Version Concurrent Control（多版本并发控制）</strong>，简称<strong>MVCC</strong>，指对于同一个记录，不同的事务会有不同的版本，不同版本互不影响，最后事务提交时根据版本先后确定能否提交。</p>
 <p>但是，<strong>Innodb</strong>的读写事务会加排他锁，不同版本其实是<strong>串行</strong>的，所以首先要指出的是，<strong>Innodb事务快照读不是严格的MVCC实现</strong>。</p>
 <h1 id="实现">2. 实现</h1><h2 id="隐藏字段">2.1. 隐藏字段</h2><p>Innodb每一行都有三个隐藏字段，分别是<code>DB_ROW_ID</code>、<code>DB_TRX_ID</code>、<code>DB_ROLL_PTR</code>。</p>
