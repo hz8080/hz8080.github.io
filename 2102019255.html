@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言自己搭个k8s集群，踩了一些坑 2. 镜像kubeadm init命令会去k8s.gcr.io拉镜像，这个地址是得挂代理才能上的（可以指定地址忽略代理），可以用kubeadm config images pull尝试一下，十有八九是不行。不想挂代理的话，用下面这个方法。 先执行kubeadm config images list列出镜像，输出信息中有两行WARN是获取版本timeout可">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-08-27T08:32:48.157Z">
+<meta property="og:updated_time" content="2020-02-20T11:08:53.244Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[容器]k8s部署踩坑">
 <meta name="twitter:description" content="1. 前言自己搭个k8s集群，踩了一些坑 2. 镜像kubeadm init命令会去k8s.gcr.io拉镜像，这个地址是得挂代理才能上的（可以指定地址忽略代理），可以用kubeadm config images pull尝试一下，十有八九是不行。不想挂代理的话，用下面这个方法。 先执行kubeadm config images list列出镜像，输出信息中有两行WARN是获取版本timeout可">
@@ -225,7 +225,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#镜像"><span class="toc-text">2. 镜像</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#token和ca-cert-hash"><span class="toc-text">3. token和ca-cert-hash</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ip转发"><span class="toc-text">4. ip转发</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#时间同步"><span class="toc-text">5. 时间同步</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#hostname"><span class="toc-text">6. hostname</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#网桥地址重复"><span class="toc-text">7. 网桥地址重复</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#镜像"><span class="toc-text">2. 镜像</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#token和ca-cert-hash"><span class="toc-text">3. token和ca-cert-hash</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ip转发"><span class="toc-text">4. ip转发</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#时间同步"><span class="toc-text">5. 时间同步</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#hostname"><span class="toc-text">6. hostname</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#网桥地址重复"><span class="toc-text">7. 网桥地址重复</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#dashboard-404错误"><span class="toc-text">8. dashboard 404错误</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -269,10 +269,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2102019255.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 652(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 705(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
 	
 
       </div>
@@ -293,7 +293,9 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y ntpdate</span><br><span class="line">ntpdate cn.pool.ntp.org</span><br></pre></td></tr></table></figure>
 
 <h1 id="hostname">6. hostname</h1><p>在node主机执行<code>kubeadm join</code>的时候，要用<code>--node-name</code>指定节点名字，如果不指定，会用hostname，如果你和我一样主机是用vmware克隆出来的，几台机器的hostname都是一样的，就会执行<code>kubeadm join</code>成功，<code>kubectl get nodes</code>只有一台master(三台机hostname都是master)，<code>kubectl get pods --namespace kube-system</code>的pod也都只有一份。</p>
-<h1 id="网桥地址重复">7. 网桥地址重复</h1><p><code>failed to set bridge addr: &quot;cni0&quot; already has an IP address different from 10.244.1.1/24</code>，执行<code>ip link delete cin0</code>删除<strong>cni0</strong>网桥</p>
+<h1 id="网桥地址重复">7. 网桥地址重复</h1><p><code>failed to set bridge addr: &quot;cni0&quot; already has an IP address different from 10.244.1.1/24</code>，执行<code>ip link delete cin0</code>删除<strong>cni0</strong>网桥。</p>
+<h1 id="dashboard-404错误">8. dashboard 404错误</h1><p>输入token后显示的是404，执行<code>kubectl logs</code>发现找不到某些<code>Resource</code>，查看iusse，dashboard v1.X和新版的k8s不兼容，升到v2.x就好了。不过v2.x还没有正式版。</p>
+<p># </p>
 
       
     </div>

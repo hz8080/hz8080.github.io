@@ -26,7 +26,7 @@
 <meta property="og:description" content="1. 概述HashMap是基于哈希表的Map接口实现的,此实现提供所有可选的映射操作。存储的是&amp;lt;key，value&amp;gt;对的映射，允许多个null值和一个null键。但此类不保证映射的顺序，特别是它不保证该顺序恒久不变。 除了HashMap是非同步以及允许使用null外，HashMap 类与 Hashtable大致相同。此实现假定哈希函数将元素适当地分布在各桶之间，可为基本操作（get 和">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/pasted-44.png">
-<meta property="og:updated_time" content="2019-10-08T07:28:26.728Z">
+<meta property="og:updated_time" content="2020-02-21T04:37:27.621Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java集合(八)HashMap">
 <meta name="twitter:description" content="1. 概述HashMap是基于哈希表的Map接口实现的,此实现提供所有可选的映射操作。存储的是&amp;lt;key，value&amp;gt;对的映射，允许多个null值和一个null键。但此类不保证映射的顺序，特别是它不保证该顺序恒久不变。 除了HashMap是非同步以及允许使用null外，HashMap 类与 Hashtable大致相同。此实现假定哈希函数将元素适当地分布在各桶之间，可为基本操作（get 和">
@@ -226,7 +226,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概述"><span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#数据结构"><span class="toc-text">2. 数据结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#源码解析"><span class="toc-text">3. 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#映射项Node-lt-K-V-gt-结构"><span class="toc-text">3.1. 映射项Node&lt;K,V&gt;结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#类结构"><span class="toc-text">3.2. 类结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#冲突解决方法"><span class="toc-text">3.3. 冲突解决方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造函数"><span class="toc-text">3.4. 构造函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#resize-方法"><span class="toc-text">3.5. resize()方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#查找"><span class="toc-text">3.6. 查找</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#添加"><span class="toc-text">3.7. 添加</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HashMap的取模方法"><span class="toc-text">3.8. HashMap的取模方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#hash"><span class="toc-text">3.8.1. hash</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#取模"><span class="toc-text">3.8.2. 取模</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#清空与删除"><span class="toc-text">3.9. 清空与删除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他公开的方法"><span class="toc-text">3.10. 其他公开的方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HashMap带来的线程问题"><span class="toc-text">4. HashMap带来的线程问题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#多线程put的时候可能导致元素丢失"><span class="toc-text">4.1. 多线程put的时候可能导致元素丢失</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#put非null元素后get出来的却是null"><span class="toc-text">4.2. put非null元素后get出来的却是null</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多线程put后可能导致get死循环"><span class="toc-text">4.3. 多线程put后可能导致get死循环</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#概述"><span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#数据结构"><span class="toc-text">2. 数据结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#源码解析"><span class="toc-text">3. 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#映射项Node-lt-K-V-gt-结构"><span class="toc-text">3.1. 映射项Node&lt;K,V&gt;结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#类结构"><span class="toc-text">3.2. 类结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#冲突解决方法"><span class="toc-text">3.3. 冲突解决方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造函数"><span class="toc-text">3.4. 构造函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#resize-方法"><span class="toc-text">3.5. resize()方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#查找"><span class="toc-text">3.6. 查找</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#添加"><span class="toc-text">3.7. 添加</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HashMap的取模方法"><span class="toc-text">3.8. HashMap的取模方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#hash"><span class="toc-text">3.8.1. hash</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#取模"><span class="toc-text">3.8.2. 取模</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#清空与删除"><span class="toc-text">3.9. 清空与删除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他公开的方法"><span class="toc-text">3.10. 其他公开的方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HashMap带来的线程问题"><span class="toc-text">4. HashMap带来的线程问题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#多线程put的时候可能导致元素丢失"><span class="toc-text">4.1. 多线程put的时候可能导致元素丢失</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#put非null元素后get出来的却是null"><span class="toc-text">4.2. put非null元素后get出来的却是null</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多线程put后可能导致get死循环"><span class="toc-text">4.3. 多线程put后可能导致get死循环</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一写多读"><span class="toc-text">5. 一写多读</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -265,7 +265,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/279970476.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 5.2k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 5.3k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 24(分)</span>
@@ -320,6 +320,9 @@
 <h2 id="put非null元素后get出来的却是null">4.2. put非null元素后get出来的却是null</h2><p>问题出在线程一put非null元素后，线程二将key的value置为null，导致线程一get到null</p>
 <h2 id="多线程put后可能导致get死循环">4.3. 多线程put后可能导致get死循环</h2><p>这个问题在jdk7会出现，但是jdk8不会了。虽然jdk8不会出现死循环，但在多线程环境下还是不能用HashMap。我想这只是避免了实习生用错数据结构带崩整个应用吧（滑稽）。</p>
 <p>要知道前面的问题只是会出错，而死循环的话是会引起CPU空转的。<br>详见<a href="https://juejin.im/post/5a66a08d5188253dc3321da0" target="_blank" rel="noopener">老生常谈，HashMap的死循环</a>。这篇文章的代码是jdk7的，死循环主要是因为jdk7的resize会导致新链表逆序，多个线程下resize将逆序链表和正序链表瞎鸡儿操作，就诞生出环形链表了（还会丢数据）。这样一旦get进行递归链表的时候就死循环。而jdk8保证了链表的顺序，避免了出现环形链表。</p>
+<h1 id="一写多读">5. 一写多读</h1><p>如果对于一个HashMap实例，只有一个进程写，多个进程读，是不是线程安全？</p>
+<p>答案是线程不安全的。</p>
+<p>如果写进程触发了扩容，那么元素会被迁移，而Hashmap的读是不会查找第二个扩容数组的，这个和redis的hash扩容不一样，redis的hash扩容会查找新数组。所以只查找第一个数组，就会可能出现数据已经添加，但是读不到的情况。</p>
 
       
     </div>
