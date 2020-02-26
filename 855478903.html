@@ -27,7 +27,7 @@
 <meta property="og:description" content="查了我一天喵的">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/200227005407.png">
-<meta property="og:updated_time" content="2020-02-26T17:01:27.151Z">
+<meta property="og:updated_time" content="2020-02-26T17:07:29.441Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[k8s]istio自动注入失败">
 <meta name="twitter:description" content="查了我一天喵的">
@@ -271,10 +271,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/855478903.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 398(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 444(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
 	
 
       </div>
@@ -291,9 +291,9 @@
 <p>查看<code>apiserver</code>的日志，一直提示</p>
 <pre><code>&quot;sidecar-injector.istio.io&quot;: Post https://istio-sidecar-injector.istio-system.svc:443/inject?timeout=30s: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)</code></pre><p>查看<code>controller-manager</code>的日志，一直提示</p>
 <pre><code>Event(v1.ObjectReference{Kind:&quot;HorizontalPodAutoscaler&quot;, Namespace:&quot;istio-system&quot;, Name:&quot;istio-telemetry&quot;, UID:&quot;da322eac-127a-4c78-89e6-db614d697949&quot;, APIVersion:&quot;autoscaling/v2beta2&quot;, ResourceVersion:&quot;10847941&quot;, FieldPath:&quot;&quot;}): type: &apos;Warning&apos; reason: &apos;FailedComputeMetricsReplicas&apos; invalid metrics (1 invalid out of 1), first error is: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API</code></pre><p>看起来是在说找不到<strong>metrics api</strong>？</p>
-<p>上官网，<a href="https://istio.io/docs/ops/common-problems/injection/" target="_blank" rel="noopener">Istio / Sidecar Injection Problems</a>没有一个描述是符合的。github issue也没有提到。</p>
+<p>上官网，<a href="https://istio.io/docs/ops/common-problems/injection/" target="_blank" rel="noopener">Istio / Sidecar Injection Problems</a>没有一个描述是符合的。github issue也没有提到任何要安装<code>metrics-server</code>。</p>
 <p>找到一篇<a href="https://www.yp14.cn/2019/12/12/Istio%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5sidecar%E5%87%BA%E9%94%99%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" target="_blank" rel="noopener">博客</a>，里面提到</p>
-<p><img src="../images/200227005407.png" alt><br>于是我安装了<code>metrics-server</code>，然后注入<code>sidecar</code>的<code>pod</code>成功创建 = =</p>
+<p><img src="../images/200227005407.png" alt><br>于是乖乖安装<code>metrics-server</code>，然后注入<code>sidecar</code>的<code>pod</code>就成功创建了 = = 其实一早就看到关于<strong>metrics api</strong>的报错，但是我认为那是收集监控数据的，于是没鸟他，还是图样了。</p>
 
       
     </div>
