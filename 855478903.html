@@ -26,12 +26,13 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="查了我一天喵的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://htchz.cc/images/200227005407.png">
-<meta property="og:updated_time" content="2020-02-26T17:09:10.024Z">
+<meta property="og:image" content="https://htchz.cc/images/20200227005407.png">
+<meta property="og:image" content="https://htchz.cc/images/20200227012503.png">
+<meta property="og:updated_time" content="2020-02-26T17:25:43.196Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[k8s]istio自动注入失败">
 <meta name="twitter:description" content="查了我一天喵的">
-<meta name="twitter:image" content="https://htchz.cc/images/200227005407.png">
+<meta name="twitter:image" content="https://htchz.cc/images/20200227005407.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/855478903.html">
   
@@ -227,7 +228,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#过程"><span class="toc-text">1. 过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#demo"><span class="toc-text">2. demo</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -271,7 +272,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/855478903.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 444(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 449(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 2(分)</span>
@@ -283,7 +284,7 @@
       
         <p>查了我一天喵的</p>
 <a id="more"></a>
-<p>istio两种注入模式，一种是执行<code>istioctl kube-inject</code>将目标<code>deployment</code>的yaml先修改，也就是手动注入<code>sidecar</code>和<code>initContainer</code>，另一种就是在<code>pod</code>被部署的时候，利用k8s的<code>webhook</code>机制，进行自动注入。</p>
+<h1 id="过程">1. 过程</h1><p>istio两种注入模式，一种是执行<code>istioctl kube-inject</code>将目标<code>deployment</code>的yaml先修改，也就是手动注入<code>sidecar</code>和<code>initContainer</code>，另一种就是在<code>pod</code>被部署的时候，利用k8s的<code>webhook</code>机制，进行自动注入。</p>
 <p>在自动注入前，要在部署容器的<code>namespace</code>打上<code>istio-injection: enabled</code>标签，这样才会自动注入，同时，还可以指定<code>template</code>的注解:<code>sidecar.istio.io/inject: true</code>来做更小粒度的控制。</p>
 <p>在使用<code>bookinfo</code>的demo过程中，自动注入并没有生效，甚至连<code>pod</code>都没有<code>create</code>。</p>
 <p>执行<code>kubectl describe deployment productpage</code>查看其中一个<code>deployment</code>，发现只有一个事件， <code>Scaled up replica set productpage-v1-596598f447 to 1</code>，然后就没有然后了。</p>
@@ -293,7 +294,8 @@
 <pre><code>Event(v1.ObjectReference{Kind:&quot;HorizontalPodAutoscaler&quot;, Namespace:&quot;istio-system&quot;, Name:&quot;istio-telemetry&quot;, UID:&quot;da322eac-127a-4c78-89e6-db614d697949&quot;, APIVersion:&quot;autoscaling/v2beta2&quot;, ResourceVersion:&quot;10847941&quot;, FieldPath:&quot;&quot;}): type: &apos;Warning&apos; reason: &apos;FailedComputeMetricsReplicas&apos; invalid metrics (1 invalid out of 1), first error is: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API</code></pre><p>看起来是在说找不到<strong>metrics api</strong>？</p>
 <p>上官网，<a href="https://istio.io/docs/ops/common-problems/injection/" target="_blank" rel="noopener">Istio / Sidecar Injection Problems</a>没有一个描述是符合的。github issue也没有提到要安装<code>metrics-server</code>。</p>
 <p>最后找到一篇<a href="https://www.yp14.cn/2019/12/12/Istio%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5sidecar%E5%87%BA%E9%94%99%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" target="_blank" rel="noopener">博客</a>，里面提到</p>
-<p><img src="../images/200227005407.png" alt><br>于是乖乖安装<code>metrics-server</code>，然后注入<code>sidecar</code>的<code>pod</code>就成功创建了 = = 其实一早就看到关于<strong>metrics api</strong>的报错，但是我认为那是收集监控数据的，于是没鸟他，还是图样了。</p>
+<p><img src="../images/20200227005407.png" alt><br>于是乖乖安装<code>metrics-server</code>，然后注入<code>sidecar</code>的<code>pod</code>就成功创建了 = = 其实一早就看到关于<strong>metrics api</strong>的报错，但是我认为那是收集监控数据的，于是没鸟他，还是图样了。</p>
+<h1 id="demo">2. demo</h1><p><img src="../images/20200227012503.png" alt></p>
 
       
     </div>
