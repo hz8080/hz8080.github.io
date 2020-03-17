@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/20200317182036.png">
 <meta property="og:image" content="https://htchz.cc/images/20200317201125.png">
-<meta property="og:updated_time" content="2020-03-17T15:04:02.077Z">
+<meta property="og:updated_time" content="2020-03-17T15:52:16.460Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]CMS">
 <meta name="twitter:description" content="1. 什么是CMSConcurrent Mark Sweep。看名字就知道，CMS是一款并发、使用标记-清除算法的gc。CMS是针对老年代进行回收的GC。 2. CMS有什么用CMS以获取最小停顿时间为目的。在一些对响应时间有很高要求的应用或网站中，用户程序不能有长时间的停顿，CMS 可以用于此场景。 3. 执行流程(6个阶段) 初始标记(STW) 并发标记 预清理 可中断预清理 重标记(STW)">
@@ -272,10 +272,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/4242301031.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 979(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.1k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 3(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 4(分)</span>
 	
 
       </div>
@@ -306,9 +306,15 @@
 </ul>
 <h2 id="预清理">3.3. 预清理</h2><ul>
 <li>由于<strong>重标记</strong>会导致stw，所以这个阶段目的为了尽可能减少stw时间</li>
-<li>此阶段标记从新生代晋升的对象、新分配到老年代的对象以及在并发阶段被修改了的对象。</li>
+<li>此阶段扫描。（1）老年代中card为dirty的对象；（2）幸存区(from和to)中引用的老年代对象。因此，这个阶段也需要扫描新生代+老年代。</li>
 </ul>
-<h3 id="card">3.3.1. card</h3><p>CMS将堆内存分为多个<code>card page</code>，又使用一个<code>card table</code>索引<code>card page</code>，有点像内存分页机制。</p>
+<h3 id="card">3.3.1. card</h3><p>CMS将老年代分为多个<code>card page</code>，又使用一个<code>card table</code>索引<code>card page</code>，有点像内存分页机制。</p>
+<p>当某个对象的引用被修改时，会触发一道<strong>写屏障</strong>（<code>write barrier</code>）。<strong>写屏障</strong>会将对象所在的<code>card page</code>对应的<code>card table</code>索引处，标记为<code>dirty card</code>。</p>
+<p>所以再接下来的<strong>预清理</strong>和<strong>重标记</strong>的可达性分析会将<code>dirty card</code>纳入。</p>
+<p>另外，新生代的对象如果被老年代引用，如果每次<code>Young GC</code>都要扫描老年代是不现实的，所以<code>Young GC</code>也会扫描<code>dirty card</code>对应的对对象进行分析。</p>
+<blockquote>
+<p>“屏障”老让我想到lol的“屏障”，“屏障”是保护的，一直以为“写屏障”是“写保护”之类的东西。其实就是一个写拦截器。</p>
+</blockquote>
 <h2 id="可中断的预清理（abortable-preclean）">3.4. 可中断的预清理（abortable preclean）</h2><p><img src="../images/20200317182036.png" alt><br><img src="../images/20200317201125.png" alt><br>这个过程其实就是不停循环执行预清理。开启条件是：</p>
 <ol>
 <li>Eden的使用空间大于<strong>CMSScheduleRemarkEdenSizeThreshold</strong>，这个参数的默认值是2M；</li>
@@ -324,16 +330,16 @@
 <p>另外，可以开启<code>CMSScavengeBeforeRemark</code>，在<code>remark</code>之前进行一次强制的<code>Young GC</code>。</p>
 <h2 id="重标记（remark）">3.5. 重标记（remark）</h2><ul>
 <li>重标记需要STW（Stop The World）</li>
-<li>暂停所有用户线程，扫描新生代对象，<code>dirty card</code>，GCROOT进行可达性分析，标记活着的对象。</li>
+<li>暂停所有用户线程，从GCROOT、<code>dirty card</code>进行可达性分析，标记活着的对象。</li>
 <li>多线程操作</li>
+<li>已标记过的不会再处理</li>
 </ul>
 <h2 id="并发清理">3.6. 并发清理</h2><p>并发清理。用户线程被重新激活，同时清理那些无效的对象。</p>
 <h2 id="重置">3.7. 重置</h2><p>CMS清除内部状态，为下次回收做准备。</p>
 <h1 id="存在的问题">4. 存在的问题</h1><ul>
-<li>并发进行，占用cpu资源。有个增量模式（i-CMS）使gc线程和用户线程交替进行，jdk8已经被声明为“deprecated”</li>
-<li>并发清理阶段用户线程还在运行，这段时间产生的垃圾只能等到下次清理，即浮动垃圾。</li>
+<li><code>card</code>解决了漏标的问题，但解决不了误标，误标的即浮动垃圾，需要下一轮GC才能清楚。</li>
 <li>由于垃圾回收阶段用户线程仍在执行，必需预留出内存空间给用户线程使用。因此不能像其他回收器那样，等到老年代满了再进行GC。有个<code>CMSInitiatingOccupancyFraction</code>设置一个百分比，表明达到这个值就进行垃圾回收，见<a href="./527051980.html">《JVM-MinorGC与FullGC》</a>的<code>concurrent mode failure</code>关键字</li>
-<li>前两个是并发造成的，接下来是‘标记-清除’算法造成的，这个算法造成空间碎片，虚拟机还提供了另外一个参数<code>CMSFullGCsBeforeCompaction</code>，用于设置执行多少次不压缩的Full GC后，跟着来一次带压缩的（默认为0，每次进入Full GC时都进行碎片整理）。</li>
+<li>上面并发造成的，接下来是‘标记-清除’算法造成的，这个算法造成空间碎片，虚拟机还提供了另外一个参数<code>CMSFullGCsBeforeCompaction</code>，用于设置执行多少次不压缩的Full GC后，跟着来一次带压缩的（默认为0，每次进入Full GC时都进行碎片整理）。</li>
 </ul>
 <h1 id="参考">5. 参考</h1><ol>
 <li><a href="https://stackoverflow.com/questions/44182733/can-someone-explain-what-happens-in-the-concurrent-abortable-preclean-phase-of/44204163#44204163" target="_blank" rel="noopener">关于“Concurrent Abortable Preclean”的疑问</a></li>
