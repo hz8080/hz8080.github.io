@@ -17,19 +17,19 @@
   <meta http-equiv="window-target" content="_top">
   
   
-  <title>[JVM]GC那些事(六)MinorGC与FullGC | 土川的自留地</title>
-  <meta name="description" content="面试只要沾到jvm，就肯定会沾到GC，沾到GC，就肯定会沾到这两个家伙。不同的垃圾收集器的GC方式不一样，我们在讨论的时候最好基于某种垃圾收集器来讲。">
-<meta name="keywords" content="JVM,GC">
+  <title>[JVM]MinorGC与FullGC | 土川的自留地</title>
+  <meta name="description" content="1. Minor GC？Full GC？ minor gc指的是在年轻代的gc full gc指的是整个堆的清理，包括年轻代和老年代(老年代的gc一般叫major gc)  2. 什么时候会触发Minor GC我们拿CMS来举例子。  Eden区域满了，或者新创建的对象大小 &amp;gt; Eden所剩空间 CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会">
+<meta name="keywords" content="GC,JVM">
 <meta property="og:type" content="article">
-<meta property="og:title" content="[JVM]GC那些事(六)MinorGC与FullGC">
+<meta property="og:title" content="[JVM]MinorGC与FullGC">
 <meta property="og:url" content="https://htchz.cc/527051980.html">
 <meta property="og:site_name" content="土川的自留地">
-<meta property="og:description" content="面试只要沾到jvm，就肯定会沾到GC，沾到GC，就肯定会沾到这两个家伙。不同的垃圾收集器的GC方式不一样，我们在讨论的时候最好基于某种垃圾收集器来讲。">
+<meta property="og:description" content="1. Minor GC？Full GC？ minor gc指的是在年轻代的gc full gc指的是整个堆的清理，包括年轻代和老年代(老年代的gc一般叫major gc)  2. 什么时候会触发Minor GC我们拿CMS来举例子。  Eden区域满了，或者新创建的对象大小 &amp;gt; Eden所剩空间 CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-10-22T03:34:46.000Z">
+<meta property="og:updated_time" content="2020-03-17T06:21:19.239Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="[JVM]GC那些事(六)MinorGC与FullGC">
-<meta name="twitter:description" content="面试只要沾到jvm，就肯定会沾到GC，沾到GC，就肯定会沾到这两个家伙。不同的垃圾收集器的GC方式不一样，我们在讨论的时候最好基于某种垃圾收集器来讲。">
+<meta name="twitter:title" content="[JVM]MinorGC与FullGC">
+<meta name="twitter:description" content="1. Minor GC？Full GC？ minor gc指的是在年轻代的gc full gc指的是整个堆的清理，包括年轻代和老年代(老年代的gc一般叫major gc)  2. 什么时候会触发Minor GC我们拿CMS来举例子。  Eden区域满了，或者新创建的对象大小 &amp;gt; Eden所剩空间 CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/527051980.html">
   
@@ -181,7 +181,7 @@
   <div class="widget">
     <h3 class="widget-title">分类</h3>
     <div class="widget-body">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">48</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器/">容器</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DB/">DB</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">49</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器/">容器</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -191,7 +191,7 @@
   <div class="widget">
     <h3 class="widget-title">标签</h3>
     <div class="widget-body">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BUG/">BUG</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/">HTTP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZAB/">ZAB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/deploy/">deploy</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/istio/">istio</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/">k8s</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raft/">raft</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/一致性算法/">一致性算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BUG/">BUG</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/">HTTP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZAB/">ZAB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/deploy/">deploy</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/istio/">istio</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/">k8s</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raft/">raft</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/一致性算法/">一致性算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -210,7 +210,7 @@
   <div class="widget">
     <h3 class="widget-title">归档</h3>
     <div class="widget-body">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">38</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">38</span></li></ul>
     </div>
   </div>
 
@@ -232,14 +232,14 @@
 
 <main class="main" role="main">
   <div class="content">
-  <article id="post-JVM-GC那些事-六-MinorGC与FullGC" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-JVM-MinorGC与FullGC" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      [JVM]GC那些事(六)MinorGC与FullGC
+      [JVM]MinorGC与FullGC
     </h1>
   
 
@@ -279,11 +279,7 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <blockquote>
-<p>面试只要沾到jvm，就肯定会沾到GC，沾到GC，就肯定会沾到这两个家伙。不同的垃圾收集器的GC方式不一样，我们在讨论的时候最好基于某种垃圾收集器来讲。</p>
-</blockquote>
-<a id="more"></a>
-<h1 id="Minor-GC？Full-GC？">1. Minor GC？Full GC？</h1><ul>
+        <h1 id="Minor-GC？Full-GC？">1. Minor GC？Full GC？</h1><ul>
 <li>minor gc指的是在年轻代的gc</li>
 <li>full gc指的是整个堆的清理，包括年轻代和老年代(老年代的gc一般叫major gc)</li>
 </ul>
@@ -296,9 +292,10 @@
 <h1 id="什么时候触发Full-GC">3. 什么时候触发Full GC</h1><ul>
 <li>Minor GC后对象晋升老年代，由于担保机制(看<code>《[JVM]GC那些事(四)对象的分配回收策略》</code>)，两种情况触发Full GC，一种晋升平均大小 &gt; 老年代剩余空间（基于历史平均水平），另一种存活对象 &gt; 老年代剩余空间（基于下一次可能要晋升的最大水平），两种情况都属于<strong>promotion failure</strong></li>
 <li>发生concurrent mode failure会引起Full GC，<strong>这种情况下会使用Serial Old收集器</strong>，是单线程的，对GC的影响很大。大对象(由PretenureSizeThreshold控制新生代直接晋升老年代的对象size阀值)不能进入到老年代，只有stop the world来暂停用户线程，执行GC清理。可以通过设置CMSInitiatingOccupancyFraction预留合适的CMS执行时剩余的空间</li>
-<li><strong>（jdk8 已完全移除永久die，将此类信息放入本地内存）</strong>Perm永久代空间不足会触发Full GC，可以让CMS清理永久代的空间。设置CMSClassUnloadingEnabled即可</li>
+<li><strong>（jdk8 已完全移除永久代，将此类信息放入本地内存）</strong>Perm永久代空间不足会触发Full GC，可以让CMS清理永久代的空间。设置CMSClassUnloadingEnabled即可</li>
 <li>System.gc()引起的Full GC，可以设置DisableExplicitGC来禁止调用System.gc引发Full GC<blockquote>
-<p>concurrent mode failure，即启动不了并发清理，因为内存不足导致并发情况下，还没来得及清理内存就爆了，所以要退化为串行的垃圾收集<br>promotion failure，即担保机制失败</p>
+<p><code>concurrent mode failure</code>，即启动不了并发清理，因为内存不足导致并发情况下，还没来得及清理内存就爆了，所以要退化为串行的垃圾收集  </p>
+<p><code>promotion failure</code>，即担保机制失败</p>
 </blockquote>
 </li>
 </ul>
@@ -317,7 +314,7 @@
 <li>一旦对象进入了老年代，那么只有触发CMS(只针对CMS而言)或者Full GC的时候才能被清除。</li>
 <li>CMS不等于Full GC，很多人会认为CMS肯定会引发Minor GC。CMS是针对老年代的GC策略，原则上它不会去清理新生代，只有设置CMSScavengeBeforeRemark优化时，或者是concurrent mode failure的时候才会去做Minor GC。</li>
 <li>对于性能调优来说，应该理解对于给定的硬件，给定的算法(垃圾收集器)，单个/多个线程单位时间内能够回收的空间是接近一个常量的。如果想要缩短GC的时候，就要考虑是否要相应调小空间</li>
-<li>CMS收集器会了减少stop the world的时间，让GC线程和业务线程并发，这样也就相对拉长了CMS收集器单次GC的时间</li>
+<li>CMS收集器会了减少<code>stop the world</code>的时间，让GC线程和业务线程并发，这样也就相对拉长了CMS收集器单次GC的时间</li>
 <li><strong>尽可能地让对象停留在新生代</strong>，因为新生代采用了复制算法，相对收回得更快，而且Minor GC的次数肯定比Full GC多，那么对象在新生代被清除的更能性会更高。而对象一旦进入到老年代，那么只有Full GC时才会回收，对象在整个系统停留的时间就会很长，很可能创建的它的线程早就死了，而它还活着</li>
 <li><strong>为了尽可能让对象停留在新生代，就要注意设置Survivor区域的大小</strong>，因为它直接和对象是否进入老年代相关。之前就遇到过这种情况，明明新生代还有很大的空间，但是每次Minor GC后总是有对象进入到了老年代。后来发现由于Survivor太小，导致Tenuring Threshold为1，意思是年龄为1的对象大小超过了Survivor / 2(可通过TargetSurvivorRatio来调节，默认是50，即1/2)，年龄只要超过1的对象这时候就要直接进入老年代了。而进入老年代，对象就只有在Full GC的时候才会被清除。而如果调大了Survivor空间，让对象对象尽量接近Max Tenuring Threshold时才进入到老年代，这时候会大大减少老年代的对象大小，并且让对象在新生代停留时间变长，提高了它们被快速清理出系统的概率。</li>
 </ul>
@@ -330,7 +327,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://htchz.cc/527051980.html" title="[JVM]GC那些事(六)MinorGC与FullGC" target="_blank" rel="external">https://htchz.cc/527051980.html</a>
+      <a href="https://htchz.cc/527051980.html" title="[JVM]MinorGC与FullGC" target="_blank" rel="external">https://htchz.cc/527051980.html</a>
     </li>
     
     <li class="post-copyright-license">
@@ -379,12 +376,12 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/4242301031.html" title="[JVM]GC那些事(七)CMS"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/4242301031.html" title="[JVM]CMS"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
     <li class="next">
-      <a href="/1597842502.html" title="[JVM]GC那些事(五)垃圾收集器"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/1597842502.html" title="[JVM]垃圾收集器"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
@@ -468,7 +465,7 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
         
             this.page.url = 'https://htchz.cc/527051980.html';
         
-        this.page.identifier = 'JVM-GC那些事-六-MinorGC与FullGC';
+        this.page.identifier = 'JVM-MinorGC与FullGC';
     };
     (function() { 
         var d = document, s = d.createElement('script');  
