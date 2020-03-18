@@ -41,9 +41,9 @@
       <category term="Java基础" scheme="https://htchz.cc/categories/Java%E5%9F%BA%E7%A1%80/"/>
     
     
-      <category term="GC" scheme="https://htchz.cc/tags/GC/"/>
-    
       <category term="JVM" scheme="https://htchz.cc/tags/JVM/"/>
+    
+      <category term="GC" scheme="https://htchz.cc/tags/GC/"/>
     
   </entry>
   

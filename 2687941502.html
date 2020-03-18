@@ -19,7 +19,7 @@
   
   <title>[JVM]G1 | 土川的自留地</title>
   <meta name="description" content="不得不说G1有点难理解">
-<meta name="keywords" content="GC,JVM">
+<meta name="keywords" content="JVM,GC">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[JVM]G1">
 <meta property="og:url" content="https://htchz.cc/2687941502.html">
@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200318103543.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318154713.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318230122.png">
-<meta property="og:updated_time" content="2020-03-18T18:09:48.444Z">
+<meta property="og:updated_time" content="2020-03-18T18:13:51.380Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]G1">
 <meta name="twitter:description" content="不得不说G1有点难理解">
@@ -274,7 +274,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2687941502.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.9k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 7(分)</span>
@@ -309,7 +309,7 @@
 <li>B，重标记，stw，将<code>satb_mark_queue</code>里的对象进行可达性分析，并在<strong>NextBitmap</strong>标记</li>
 <li>C，清理，将<strong>NextBitmap</strong>赋值给<strong>PrevBitmap</strong>，清空<strong>NextBitmap</strong>，<strong>NextTAMS</strong>和<strong>PrevTAMS</strong>交换位置</li>
 <li>D，第N+1轮初始标记。。。</li>
-<li>E，第N+1轮重标记，可以看到<strong>PrevBitmap</strong>是有值的，是上一轮的快照</li>
+<li>E，第N+1轮重标记，可以看到<strong>PrevBitmap</strong>是有值的，是上一轮的快照（注意，不是说这一轮这个区间的标记就照抄<strong>PrevBitmap</strong>）</li>
 <li>F，第N+1轮清理。。。</li>
 </ol>
 <p>总结：<br>(1): [bottom, prevTAMS): 这部分里的对象存活信息可以通过prevBitmap来得知<br>(2): [prevTAMS, nextTAMS): 这部分里的对象在第n-1轮concurrent marking是隐式存活的<br>(3): [nextTAMS, top): 这部分里的对象在第n轮concurrent marking是隐式存活的</p>
@@ -328,7 +328,7 @@
 <li>清理（cleanup）：不是垃圾回收，这个阶段主要识别空分区、RSet梳理、卸载class、回收<strong>Humongous</strong>，对老年代<strong>Region</strong>进行活度排序。</li>
 </ol>
 <p>这个过程有点像CMS的执行过程。</p>
-<h3 id="拷贝存活对象（evacuation）">5.2.2. 拷贝存活对象（evacuation）</h3><p>STW，对标记为垃圾的对象进行清理。</p>
+<h3 id="拷贝存活对象（evacuation）">5.2.2. 拷贝存活对象（evacuation）</h3><p>STW，对标记为垃圾的对象进行清理。一次全局并发标记<strong>完成后</strong>，就开始回收了。</p>
 <ul>
 <li>Young GC：选定所有新生代里的<strong>Region</strong>。通过控制新生代的region个数来控制young GC的开销。</li>
 <li>Mixed GC：选定所有新生代里的<strong>Region</strong>，外加根据<strong>global concurrent marking</strong>统计得出收集收益高的若干老年代<strong>Region</strong>。在用户指定的开销目标范围内尽可能选择收益高的老年代<strong>Region</strong>。两代<strong>Region</strong>一起清理，这也就是为什么叫Mixed GC了。</li>
@@ -343,6 +343,7 @@
 <li><a href="http://www.javaadu.online/?p=465" target="_blank" rel="noopener">G1垃圾收集器详解</a></li>
 <li><a href="https://hllvm-group.iteye.com/group/topic/44381" target="_blank" rel="noopener">https://hllvm-group.iteye.com/group/topic/44381</a></li>
 <li><a href="https://www.researchgate.net/publication/221032945_Garbage-First_garbage_collection" target="_blank" rel="noopener">G1论文原文</a></li>
+<li><a href="https://juejin.im/post/5e5b15f5f265da57602c547d#heading-6" target="_blank" rel="noopener">面试官问我G1回收器怎么知道你是什么时候的垃圾？</a></li>
 </ol>
 
       
