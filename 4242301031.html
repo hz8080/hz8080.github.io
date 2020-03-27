@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/20200317182036.png">
 <meta property="og:image" content="https://htchz.cc/images/20200317201125.png">
-<meta property="og:updated_time" content="2020-03-18T06:59:44.506Z">
+<meta property="og:updated_time" content="2020-03-19T07:16:09.272Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]CMS">
 <meta name="twitter:description" content="1. 什么是CMSConcurrent Mark Sweep。看名字就知道，CMS是一款并发、使用标记-清除算法的gc。CMS是针对老年代进行回收的GC。 2. CMS有什么用CMS以获取最小停顿时间为目的。在一些对响应时间有很高要求的应用或网站中，用户程序不能有长时间的停顿，CMS 可以用于此场景。 3. 执行流程(6个阶段) 初始标记(STW) 并发标记 预清理 可中断预清理 重标记(STW)">
@@ -308,9 +308,9 @@
 <li>由于<strong>重标记</strong>会导致stw，所以这个阶段目的为了尽可能减少stw时间</li>
 <li>此阶段扫描。（1）老年代中card为dirty的对象；（2）幸存区(from和to)中引用的老年代对象。因此，这个阶段也需要扫描新生代+老年代。</li>
 </ul>
-<h3 id="card">3.3.1. card</h3><p>CMS将老年代分为多个<code>card page</code>，又使用一个<code>card table</code>索引<code>card page</code>，有点像内存分页机制。</p>
-<p>一个<code>card page</code>一般是512字节。</p>
-<p>当白色对象的引用被黑色对象时，会触发一道<strong>写屏障</strong>（<code>write barrier</code>）。<strong>写屏障</strong>会将黑色对象所在的<code>card page</code>对应的<code>card table</code>索引处，标记为<code>dirty card</code>。</p>
+<h3 id="card">3.3.1. card</h3><p>CMS将老年代分为多个<code>card</code>，又使用一个<code>card table</code>索引<code>card</code>，有点像内存分页机制。</p>
+<p>一个<code>card</code>一般是512字节。</p>
+<p>当白色对象的引用被黑色对象时，会触发一道<strong>写屏障</strong>（<code>write barrier</code>）。<strong>写屏障</strong>会将黑色对象所在的<code>card</code>对应的<code>card table</code>索引处，标记为<code>dirty card</code>。</p>
 <p>所以<strong>预清理</strong>和<strong>重标记</strong>的可达性分析会将<code>dirty card</code>纳入。</p>
 <p>另外，新生代的对象如果被老年代引用，如果每次<code>Young GC</code>都要扫描老年代是不现实的，所以<code>Young GC</code>也会扫描<code>dirty card</code>对应的对象进行分析。<code>card table</code>有个8位属性可以表明<code>card</code>的类型。</p>
 <blockquote>
@@ -335,6 +335,9 @@
 <li>多线程操作</li>
 <li>已标记过的不会再处理</li>
 </ul>
+<blockquote>
+<p>重新扫描？那前面的工作是白费的？其实不是，已标记过的不会再处理，所以重新扫描会遇到很多标记完成的对象。</p>
+</blockquote>
 <h2 id="并发清理">3.6. 并发清理</h2><p>并发清理。用户线程被重新激活，同时清理那些无效的对象。</p>
 <h2 id="重置">3.7. 重置</h2><p>CMS清除内部状态，为下次回收做准备。</p>
 <h1 id="存在的问题">4. 存在的问题</h1><ul>

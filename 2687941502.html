@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200318103543.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318154713.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318230122.png">
-<meta property="og:updated_time" content="2020-03-18T18:13:51.380Z">
+<meta property="og:updated_time" content="2020-03-19T06:46:11.506Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]G1">
 <meta name="twitter:description" content="不得不说G1有点难理解">
@@ -230,7 +230,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Region"><span class="toc-text">1. Region</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Collection-Set-CSet"><span class="toc-text">2. Collection Set(CSet)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Remembered-RSet-RSet"><span class="toc-text">3. Remembered RSet(RSet)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Snapshot-At-The-Beginning-SATB"><span class="toc-text">4. Snapshot-At-The-Beginning(SATB)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GC模式"><span class="toc-text">5. GC模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#YoungGC-YGC"><span class="toc-text">5.1. YoungGC(YGC)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MixedGC"><span class="toc-text">5.2. MixedGC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#global-concurrent-marking"><span class="toc-text">5.2.1. global concurrent marking</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#拷贝存活对象（evacuation）"><span class="toc-text">5.2.2. 拷贝存活对象（evacuation）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#可能的GC过程（from-RednaxelaFX）"><span class="toc-text">5.3. 可能的GC过程（from RednaxelaFX）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">6. 参考</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Region"><span class="toc-text">1. Region</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Collection-Set-CSet"><span class="toc-text">2. Collection Set(CSet)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Remembered-RSet-RSet"><span class="toc-text">3. Remembered RSet(RSet)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Snapshot-At-The-Beginning-SATB"><span class="toc-text">4. Snapshot-At-The-Beginning(SATB)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#write-barrier"><span class="toc-text">5. write barrier</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GC模式"><span class="toc-text">6. GC模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#YoungGC-YGC"><span class="toc-text">6.1. YoungGC(YGC)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MixedGC"><span class="toc-text">6.2. MixedGC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#global-concurrent-marking"><span class="toc-text">6.2.1. global concurrent marking</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#拷贝存活对象（evacuation）"><span class="toc-text">6.2.2. 拷贝存活对象（evacuation）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#可能的GC过程（from-RednaxelaFX）"><span class="toc-text">6.3. 可能的GC过程（from RednaxelaFX）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#说说CMS"><span class="toc-text">7. 说说CMS</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">8. 参考</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -294,9 +294,9 @@
 <h1 id="Remembered-RSet-RSet">3. Remembered RSet(RSet)</h1><p>在<a href="./4242301031.html">[JVM]CMS</a>里说过，使用了<code>card table</code>机制来维护老年代到新生代的引用关系。G1没用<code>card table</code>卡表来维护这些关系，而是在<code>card table</code>的基础上引入了<strong>RSet</strong>，每个<strong>Region</strong>都有一个<strong>RSet</strong>，<strong>RSet</strong>是一个<code>hashtable</code>，用来记录<strong>谁引用了我</strong>，是一种<code>point-into</code>设计，而<code>card table</code>是记录<strong>我引用了谁</strong>，是一种<code>point-out</code>设计。</p>
 <p>引入<strong>RSet</strong>之后，对<strong>Region</strong>单独回收的时候就可以判断当前<strong>Region</strong>里的对象有没有被其他对象引用，</p>
 <p><img src="../images/20200318103543.png" alt></p>
-<p><code>card page</code>一般是512字节，所以<strong>Region</strong>与<code>card page</code>是一对多的关系。前面说<strong>RSet</strong>是一个<code>hashtable</code>，假如<strong>Region</strong>A在索引为8848的<code>card page</code>上<br>有对象引用了<strong>Region</strong>B，那么B的<strong>RSet</strong>应该有这样的键值对：key为<strong>Region</strong>A的起始地址，value为对应的<code>card page</code>的索引。</p>
+<p><code>card</code>一般是512字节，所以<strong>Region</strong>与<code>card</code>是一对多的关系。前面说<strong>RSet</strong>是一个<code>hashtable</code>，假如<strong>Region</strong>A在索引为8848的<code>card</code>上<br>有对象引用了<strong>Region</strong>B，那么B的<strong>RSet</strong>应该有这样的键值对：key为<strong>Region</strong>A的起始地址，value为对应的<code>card</code>的索引。</p>
+<p>这样，<strong>RSet</strong>负责记录了老年代到新生代的引用，老年代到老年代的引用。进行<code>YGC</code>的时候，扫描<code>Young Region</code>的<strong>RSet</strong>，就可以知道老年代对新生代的引用；进行<code>Mixed GC</code>时只需要扫描<code>Old Region</code>的<strong>RSet</strong>就知道老年代到老年代的引用.</p>
 <p><strong>RSet</strong>的更新也是使用<code>write barrier</code>来实现。</p>
-<p>这样，<strong>RSet</strong>负责记录了老年代到新生代的引用，老年代到老年代的引用。进行<code>YGC</code>的时候，扫描<code>Young Region</code>的<strong>RSet</strong>，就可以知道老年代对新生代的引用；进行<code>Mixed GC</code>时只需要扫描<code>Old Region</code>的<strong>RSet</strong>就知道老年代到老年代的引用。</p>
 <h1 id="Snapshot-At-The-Beginning-SATB">4. Snapshot-At-The-Beginning(SATB)</h1><p>SATB是个算法，目标是为了减少重标记时间，使用bitmap作为快照<br><img src="../images/20200318154713.png" alt><br>SARB将<strong>Region</strong>标上了5个指针，bottom、previous TAMS、next TAMS、top和end，<strong>top</strong>是<strong>Region</strong>最后一个对象的地址，<strong>bottom</strong>和<strong>end</strong>是<strong>Region</strong>的其始末，<strong>TAMS</strong>是<code>top-at-mark-start</code>，就是top指针的记录，也就是说<strong>previous TAMS</strong>、<strong>next TAMS</strong>是前后两次发生并发标记时<strong>top</strong>的位置（这里说的有点乱）</p>
 <p>下面是G1论文的举例，ABC、DEF是两个周期</p>
 <blockquote>
@@ -314,31 +314,35 @@
 </ol>
 <p>总结：<br>(1): [bottom, prevTAMS): 这部分里的对象存活信息可以通过prevBitmap来得知<br>(2): [prevTAMS, nextTAMS): 这部分里的对象在第n-1轮concurrent marking是隐式存活的<br>(3): [nextTAMS, top): 这部分里的对象在第n轮concurrent marking是隐式存活的</p>
 <p>在<a href="./2394647798.html">[JVM]JVM中三色标记法</a>中提到，三色标记法要解决漏标问题，CMS是打破了条件一，G1就是打破条件二。</p>
-<p>在标记过程中，如果白色对象从灰色对象删除，删除时会执行<code>pre_write_barrier</code>(RSet也用了一个<code>write_barrier</code>)，SATB会将白对象放入一个线程私有的<code>satb_mark_queue</code>，如果队列已满，该队列会被送去一个全局队列，然后为该线程分配一个新队列。</p>
+<p>在标记过程中，如果白色对象从灰色对象删除，删除时会执行<code>pre_write_barrier</code>，SATB会将白对象放入一个线程私有的<code>satb_mark_queue</code>，如果队列已满，该队列会被送去一个全局队列，然后为该线程分配一个新队列。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">// This notes that we don&apos;t need to access any BarrierSet data</span><br><span class="line">// structures, so this can be called from a static context.</span><br><span class="line">template &lt;class T&gt; static void write_ref_field_pre_static(T* field, oop newVal) &#123;</span><br><span class="line">  T heap_oop = oopDesc::load_heap_oop(field);</span><br><span class="line">  if (!oopDesc::is_null(heap_oop)) &#123;</span><br><span class="line">    enqueue(oopDesc::decode_heap_oop(heap_oop));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void G1SATBCardTableModRefBS::enqueue(oop pre_val) &#123;</span><br><span class="line">  // Nulls should have been already filtered.</span><br><span class="line">  assert(pre_val-&gt;is_oop(true), &quot;Error&quot;);</span><br><span class="line"></span><br><span class="line">  if (!JavaThread::satb_mark_queue_set().is_active()) return;</span><br><span class="line">  Thread* thr = Thread::current();</span><br><span class="line">  if (thr-&gt;is_Java_thread()) &#123;</span><br><span class="line">    JavaThread* jt = (JavaThread*)thr;</span><br><span class="line">    jt-&gt;satb_mark_queue().enqueue(pre_val);</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    MutexLockerEx x(Shared_SATB_Q_lock, Mutex::_no_safepoint_check_flag);</span><br><span class="line">    JavaThread::satb_mark_queue_set().shared_satb_queue()-&gt;enqueue(pre_val);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="GC模式">5. GC模式</h1><h2 id="YoungGC-YGC">5.1. YoungGC(YGC)</h2><p>当Eden区满了之后，需要STW，进行新生代的垃圾收集。从GCROOT开始标记，并且跳过老年代，同时扫描新生代<strong>Region</strong>的<strong>RSet</strong>，对于存活的对象，移动到<strong>survivor</strong>，和CMS差不多。</p>
-<h2 id="MixedGC">5.2. MixedGC</h2><h3 id="global-concurrent-marking">5.2.1. global concurrent marking</h3><p>指全局并发标记。可以通过命令-XX:InitiatingHeapOccupancyPercent来调整，默认45，一旦达到这个阈值就回触发一次并发收集周期。</p>
+<h1 id="write-barrier">5. write barrier</h1><p>上面说了<strong>RSet</strong>和<strong>SATB</strong>都是用<code>write_barrier</code>来实现，那么对象赋值时的伪代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void oop_field_store(oop* field, oop new_value) &#123;  </span><br><span class="line">  pre_write_barrier(field);             // pre-write barrier: for maintaining SATB invariant  </span><br><span class="line">  *field = new_value;                   // the actual store  </span><br><span class="line">  post_write_barrier(field, new_value); // post-write barrier: for tracking cross-region reference  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了减少<code>write_barrier</code>的性能影响，这些都是批量处理的(<strong>SATB</strong>是将<strong>oldValue</strong>入队<code>satb_mark_queue</code>，<strong>RSet</strong>是入队<code>dirty_card_queue</code>)。</p>
+<h1 id="GC模式">6. GC模式</h1><h2 id="YoungGC-YGC">6.1. YoungGC(YGC)</h2><p>当Eden区满了之后，需要STW，进行新生代的垃圾收集。从GCROOT开始标记，并且跳过老年代，同时扫描新生代<strong>Region</strong>的<strong>RSet</strong>，对于存活的对象，移动到<strong>survivor</strong>，和CMS差不多。</p>
+<h2 id="MixedGC">6.2. MixedGC</h2><h3 id="global-concurrent-marking">6.2.1. global concurrent marking</h3><p>指全局并发标记。可以通过命令-XX:InitiatingHeapOccupancyPercent来调整，默认45，一旦达到这个阈值就回触发一次并发收集周期。</p>
 <p>全局并发标记其实就是应用SATB算法的过程，包括多个阶段：</p>
 <ol>
 <li>初始标记（initial-mark）：<strong>STW</strong>，但是呢，通常这个工作是由YGC来承担的，也就是让下一次YGC工作久一点，这会增加CPU开销。这个阶段是为<strong>Region</strong>设置previous TAMS、next TAMS，所有在next TAMS之上的对象在这个并发周期内会被识别为隐式存活对象。使用bitmap来标记对象，不使用对象头的mark word。<strong>GC Root</strong>直接可达的对象会被压入<code>mark stack</code>;</li>
-<li>根分区扫描（root-region-scan）:把survivor分区当成根分区，被survivor引用的老年代对象会被标记。所以这个阶段不能发生YGC，否则有坑。如果在日志看到root-region-scan和YGC同时进行，就需要调优。</li>
 <li>并发标记（concurrent-mark）：可以通过<code>-XX:ConcGCThreads</code>设置线程数量，默认是<code>-XX:ParallelGCThreads</code>的四分之一。这个阶段会弹出<code>mark stack</code>的对象标记，并对其字段进行压栈，记录在bitmap；重复至栈空</li>
 <li>重标记（remarking）：<strong>STW</strong>，将线程私有和全局的<code>satb_mark_queue</code>里的对象进行分析标记。</li>
 <li>清理（cleanup）：不是垃圾回收，这个阶段主要识别空分区、RSet梳理、卸载class、回收<strong>Humongous</strong>，对老年代<strong>Region</strong>进行活度排序。</li>
 </ol>
 <p>这个过程有点像CMS的执行过程。</p>
-<h3 id="拷贝存活对象（evacuation）">5.2.2. 拷贝存活对象（evacuation）</h3><p>STW，对标记为垃圾的对象进行清理。一次全局并发标记<strong>完成后</strong>，就开始回收了。</p>
+<h3 id="拷贝存活对象（evacuation）">6.2.2. 拷贝存活对象（evacuation）</h3><p>STW，对标记为垃圾的对象进行清理。一次全局并发标记<strong>完成后</strong>，就开始回收了。</p>
 <ul>
 <li>Young GC：选定所有新生代里的<strong>Region</strong>。通过控制新生代的region个数来控制young GC的开销。</li>
 <li>Mixed GC：选定所有新生代里的<strong>Region</strong>，外加根据<strong>global concurrent marking</strong>统计得出收集收益高的若干老年代<strong>Region</strong>。在用户指定的开销目标范围内尽可能选择收益高的老年代<strong>Region</strong>。两代<strong>Region</strong>一起清理，这也就是为什么叫Mixed GC了。</li>
 </ul>
 <p>对于存活下来的对象，转移到新分区上，这样相对于CMS，减少了内存碎片。</p>
-<h2 id="可能的GC过程（from-RednaxelaFX）">5.3. 可能的GC过程（from RednaxelaFX）</h2><blockquote>
+<h2 id="可能的GC过程（from-RednaxelaFX）">6.3. 可能的GC过程（from RednaxelaFX）</h2><blockquote>
 <p>一个假想的混合的STW时间线：</p>
 <p>启动程序<br>-&gt; young GC<br>-&gt; young GC<br>-&gt; young GC<br>-&gt; young GC + initial marking<br>(… concurrent marking …)<br>-&gt; young GC (… concurrent marking …)<br>(… concurrent marking …)<br>-&gt; young GC (… concurrent marking …)<br>-&gt; final marking<br>-&gt; cleanup<br>-&gt; mixed GC<br>-&gt; mixed GC<br>-&gt; mixed GC<br>…<br>-&gt; mixed GC<br>-&gt; young GC + initial marking<br>(… concurrent marking …)<br>…</p>
 </blockquote>
-<h1 id="参考">6. 参考</h1><ol>
+<h1 id="说说CMS">7. 说说CMS</h1><p>CMS的设计叫<code>incremental update</code>，G1的设计是SATB，两种设计导致<strong>remark</strong>有些区别。在<strong>Remark</strong>时</p>
+<h1 id="参考">8. 参考</h1><ol>
 <li><a href="https://tech.meituan.com/2016/09/23/g1.html" target="_blank" rel="noopener">Java Hotspot G1 GC的一些关键技术</a></li>
 <li><a href="http://www.javaadu.online/?p=465" target="_blank" rel="noopener">G1垃圾收集器详解</a></li>
 <li><a href="https://hllvm-group.iteye.com/group/topic/44381" target="_blank" rel="noopener">https://hllvm-group.iteye.com/group/topic/44381</a></li>
