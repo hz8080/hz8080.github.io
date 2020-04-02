@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://htchz.cc/"/>
-  <updated>2020-03-17T17:17:59.870Z</updated>
+  <updated>2020-04-02T08:07:09.175Z</updated>
   <id>https://htchz.cc/</id>
   
   <author>
@@ -21,9 +21,9 @@
     <link href="https://htchz.cc/2394647798.html"/>
     <id>https://htchz.cc/2394647798.html</id>
     <published>2020-03-17T14:53:15.000Z</published>
-    <updated>2020-03-17T17:17:59.870Z</updated>
+    <updated>2020-04-02T08:07:09.175Z</updated>
     
-    <content type="html"><![CDATA[<p>三色标记算法是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。对象分成三种类型:</p><ul><li>黑色:根对象，或者该对象与它的子对象都被扫描</li><li>灰色:对象本身被扫描,但还没扫描完该对象中的子对象</li><li>白色:未被扫描对象，扫描完成所有对象之后，最终为白色的为不可达对象，即垃圾对象</li></ul><p>根对象被置为黑色，子对象被置为灰色。<br><img src="/images/pasted-115.png" alt="upload successful"><br>继续由灰色遍历,将已扫描了子对象的对象置为黑色。</p><p><img src="/images/pasted-116.png" alt="upload successful"><br>遍历了所有可达的对象后，所有可达的对象都变成了黑色。不可达的对象即为白色，需要被清理。<br><img src="/images/pasted-117.png" alt="upload successful"><br>这看起来很美好，但是如果在标记过程中，应用程序也在运行，那么对象的指针就有可能改变。这样的话，我们就会遇到一个问题：对象丢失问题</p><p>我们看下面一种情况，当垃圾收集器扫描到下面情况时：<br><img src="/images/pasted-118.png" alt="upload successful"></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A.c=C</span><br><span class="line">B.c=null</span><br></pre></td></tr></table></figure><p>这样，对象的状态图变成如下情形：<br><img src="/images/pasted-119.png" alt="upload successful"><br>这时候垃圾收集器再标记扫描的时候就会下图成这样：<br><img src="/images/pasted-120.png" alt="upload successful"></p><p>显然，C是白色的，也就是漏标了，会被当成垃圾回收掉，这对程序来说是不可以接受的。</p><p>漏标的情况只会发生在白色对象中，且满足以下任意一个条件：</p><ol><li>并发标记时，应用线程给一个黑色对象的引用类型字段赋值了该白色对象</li><li>并发标记时，应用线程删除所有灰色对象到该白色对象的引</li></ol><p>事实上，方法1是CMS的实现关键，方法2是G1的实现关键，有关实现就移步<a href="./4242301031.html">[JVM]CMS</a>和<a href="./2687941502.html">[JVM]G1</a></p>]]></content>
+    <content type="html"><![CDATA[<p>三色标记算法是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。对象分成三种类型:</p><ul><li>黑色:根对象，或者该对象与它的子对象都被扫描</li><li>灰色:对象本身被扫描,但还没扫描完该对象中的子对象</li><li>白色:未被扫描对象，扫描完成所有对象之后，最终为白色的为不可达对象，即垃圾对象</li></ul><p>根对象被置为黑色，子对象被置为灰色。<br><img src="/images/pasted-115.png" alt="upload successful"><br>继续由灰色遍历,将已扫描了子对象的对象置为黑色。</p><p><img src="/images/pasted-116.png" alt="upload successful"><br>遍历了所有可达的对象后，所有可达的对象都变成了黑色。不可达的对象即为白色，需要被清理。<br><img src="/images/pasted-117.png" alt="upload successful"><br>这看起来很美好，但是如果在标记过程中，应用程序也在运行，那么对象的指针就有可能改变。这样的话，我们就会遇到一个问题：对象丢失问题</p><p>我们看下面一种情况，当垃圾收集器扫描到下面情况时：<br><img src="/images/pasted-118.png" alt="upload successful"></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A.c=C</span><br><span class="line">B.c=null</span><br></pre></td></tr></table></figure><p>这样，对象的状态图变成如下情形：<br><img src="/images/pasted-119.png" alt="upload successful"><br>这时候垃圾收集器再标记扫描的时候就会下图成这样：<br><img src="/images/pasted-120.png" alt="upload successful"></p><p>显然，C是白色的，也就是漏标了，会被当成垃圾回收掉，这对程序来说是不可以接受的。</p><p>漏标的情况只会发生在白色对象中，且满足以下任意一个条件：</p><ol><li>并发标记时，应用线程给一个黑色对象的引用类型字段赋值了该白色对象</li><li>并发标记时，应用线程删除所有灰色对象到该白色对象的引用</li></ol><p>事实上，方法1是CMS的实现关键，方法2是G1的实现关键，有关实现就移步<a href="./4242301031.html">[JVM]CMS</a>和<a href="./2687941502.html">[JVM]G1</a></p>]]></content>
     
     <summary type="html">
     

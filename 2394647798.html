@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://htchz.cc/images/pasted-118.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-119.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-120.png">
-<meta property="og:updated_time" content="2020-03-17T17:17:59.870Z">
+<meta property="og:updated_time" content="2020-04-02T08:07:09.175Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]JVM中三色标记法">
 <meta name="twitter:description" content="三色标记算法是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。对象分成三种类型:  黑色:根对象，或者该对象与它的子对象都被扫描 灰色:对象本身被扫描,但还没扫描完该对象中的子对象 白色:未被扫描对象，扫描完成所有对象之后，最终为白色的为不可达对象，即垃圾对象  根对象被置为黑色，子对象被置为灰色。继续由灰色遍历,将已扫描了子对象的对象置为黑色。 遍历了所有可达的对象后，所有可达的">
@@ -276,7 +276,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2394647798.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 473(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 474(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -302,7 +302,7 @@
 <p>漏标的情况只会发生在白色对象中，且满足以下任意一个条件：</p>
 <ol>
 <li>并发标记时，应用线程给一个黑色对象的引用类型字段赋值了该白色对象</li>
-<li>并发标记时，应用线程删除所有灰色对象到该白色对象的引</li>
+<li>并发标记时，应用线程删除所有灰色对象到该白色对象的引用</li>
 </ol>
 <p>事实上，方法1是CMS的实现关键，方法2是G1的实现关键，有关实现就移步<a href="./4242301031.html">[JVM]CMS</a>和<a href="./2687941502.html">[JVM]G1</a></p>
 
