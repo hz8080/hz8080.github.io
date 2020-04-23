@@ -19,7 +19,7 @@
   
   <title>[JVM]G1 | 土川的自留地</title>
   <meta name="description" content="不得不说G1有点难理解">
-<meta name="keywords" content="JVM,GC">
+<meta name="keywords" content="GC,JVM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[JVM]G1">
 <meta property="og:url" content="https://htchz.cc/2687941502.html">
@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200318103543.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318154713.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318230122.png">
-<meta property="og:updated_time" content="2020-04-23T03:10:44.915Z">
+<meta property="og:updated_time" content="2020-04-23T06:25:24.294Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]G1">
 <meta name="twitter:description" content="不得不说G1有点难理解">
@@ -300,7 +300,7 @@
 <p><code>card</code>一般是512字节，所以<strong>Region</strong>与<code>card</code>是一对多的关系。前面说<strong>RSet</strong>是一个<code>hash table</code>，假如<strong>Region</strong>A在索引为8848的<code>card</code>上<br>有对象引用了<strong>Region</strong>B，那么B的<strong>RSet</strong>应该有这样的键值对：key为<strong>Region</strong>A的起始地址，value是个集合，<code>card</code>8848的索引是元素之一。</p>
 <p>这样，<strong>RSet</strong>负责记录了老年代到新生代的引用，老年代到老年代的引用。进行<code>YGC</code>的时候，扫描<code>Young Region</code>的<strong>RSet</strong>，就可以知道老年代对新生代的引用；进行<code>Mixed GC</code>时只需要扫描<code>Old Region</code>的<strong>RSet</strong>就知道老年代到老年代的引用.</p>
 <p><strong>RSet</strong>的更新也是使用<code>write barrier</code>来实现。</p>
-<p>注意⚠️！如果一个新生代对象引用了老年代对象，老年代对应的的<strong>RSet</strong>是不会更新的，这是因为老年代gc时新生代<strong>region</strong>都会扫描。</p>
+<p>注意⚠️如果一个新生代对象引用了老年代对象，老年代对应的的<strong>RSet</strong>是不会更新的，这是因为老年代gc时新生代<strong>region</strong>都会扫描。</p>
 <h1 id="Snapshot-At-The-Beginning-SATB">6. Snapshot-At-The-Beginning(SATB)</h1><p>SATB是个算法，目标是为了减少重标记时间，使用bitmap作为快照<br><img src="../images/20200318154713.png" alt><br>SARB将<strong>Region</strong>标上了5个指针，bottom、previous TAMS、next TAMS、top和end，<strong>top</strong>是<strong>Region</strong>最后一个对象的地址，<strong>bottom</strong>和<strong>end</strong>是<strong>Region</strong>的其始末，<strong>TAMS</strong>是<code>top-at-mark-start</code>，就是top指针的记录，也就是说<strong>previous TAMS</strong>、<strong>next TAMS</strong>是前后两次发生并发标记时<strong>top</strong>的位置（这里说的有点乱）</p>
 <p>下面是G1论文的举例，ABC、DEF是两个周期</p>
 <blockquote>
