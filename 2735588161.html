@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200502003159.png">
 <meta property="og:image" content="https://htchz.cc/images/20200502000957.png">
 <meta property="og:image" content="https://htchz.cc/images/20200502002852.png">
-<meta property="og:updated_time" content="2020-05-01T16:33:04.074Z">
+<meta property="og:updated_time" content="2020-05-01T16:35:59.442Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[网络]利用iptables转发流量">
 <meta name="twitter:description" content="最近STSDUST上新了广州移动nat🐔。广州移动承担了大部分移动出口流量，价钱也不便宜，不过老板拿到了一个比较低的价格，刚好赶上了😄。 之前买的GGC家的HK vps，从去年开始电信访问一直丢包，丢包率一上去，带宽再大速度也是提不上去（[网络]TCP拥塞控制那些事）。 于是想到买个nat机中转一下流量，因为本人就在广州，所以STSDUST这个🐔非常合适，到HK都是直连。 (2核384内存，">
@@ -273,7 +273,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2735588161.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 452(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 455(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
@@ -295,7 +295,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 临时开启 ipv4 转发</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line"><span class="comment"># 永久开启 ipv4 转发</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">'net.ipv4.ip_forward = 1'</span> &gt;&gt; /etc/sysctl.conf</span><br><span class="line"><span class="comment"># 使生效</span></span><br><span class="line">sysctl -p</span><br></pre></td></tr></table></figure>
 
 <p>接着是加iptables规则，需要在nat表加入一条DNAT和一条SNAT，DNAT是修改目的地址，转发流量到HK vps；SNAT是修改源地址，保证流量回到这台机上（只有这台机知道怎么回到我家）。</p>
-<p>假设NAT机监听<strong>10086</strong>端口，HK vpsip是<strong>104.104.104.104</strong>的ss服务是<strong>10010</strong>，NAT机内网地址是<strong>192.168.1.10</strong></p>
+<p>假设NAT机监听<code>10086</code>端口，HK vps的ip是<code>104.104.104.104</code>，ss服务端口是<code>10010</code>，NAT机内网地址是<code>192.168.1.10</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># DNAT</span></span><br><span class="line">iptables -t nat -A PREROUTING -p  tcp -m tcp --dport 10086 -j DNAT --to-destination 104.104.104.104:10010</span><br><span class="line"><span class="comment"># SNAT</span></span><br><span class="line">iptables -t nat -A POSTROUTING -p tcp -m tcp -d 104.104.104.104 --dport 10010  -j SNAT --to-source 192.168.1.10</span><br><span class="line"><span class="comment"># 应用iptables</span></span><br><span class="line">service iptables save</span><br><span class="line"><span class="comment"># 重启</span></span><br><span class="line">systemctl restart iptables</span><br><span class="line"><span class="comment"># 看下nat表</span></span><br><span class="line">iptables -nL -t nat</span><br></pre></td></tr></table></figure>
 
 <p>此外，nat机要开放<strong>10086</strong>端口。</p>
