@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200510183601.png">
 <meta property="og:image" content="https://htchz.cc/images/20200510185016.png">
 <meta property="og:image" content="https://htchz.cc/images/20200512183520.png">
-<meta property="og:updated_time" content="2020-05-12T18:44:11.765Z">
+<meta property="og:updated_time" content="2020-05-13T02:15:29.655Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]undo log">
 <meta name="twitter:description" content="Innodb学会是不可能学会的，这辈子都学不会的。">
@@ -300,7 +300,7 @@
 <p>关于更多不在讨论范围。</p>
 <h1 id="结构层次">2. 结构层次</h1><p>Rollback Segment（rseg）称为回滚段。Mysql5.6之前undo默认记录到系统表空间（ibdata），如果开启了 innodb_file_per_table ，将放在每个表的.ibd文件中。5.6之后还可以创建独立的undo表空间，8之后更是默认打开独立undo表空间，最低数量为2。独立undo表空间的文件格式是undo001，undo002……</p>
 <p>每个rollback Segment中默认有1024个undo log segment，mysql5.5后<strong>1个</strong>undo表空间支持<strong>128个</strong>rollback Segment。0号rollback Segment默认在系统表空间ibdata中，1-32rollback Segment在临时表空间，33～128在独立undo表空间中（没有打开则在系统表空间ibdata中，这样系统表空间会太大），所以<strong>1个</strong>表空间<strong>最多</strong>支持<strong>96*1024</strong>个事务，超了就报错啦。</p>
-<p>一个undo log segment对应一个undo log对象，也叫undo slot；一个undo log对象对应多个undo log record，也就是记录的历史版本。</p>
+<p>一个undo log segment称为undo log或undo slot或undo；一个undo log对象对应多个undo log record，也就是记录的历史版本。</p>
 <p>一个undo log segment有一个page链表，undo log record就是放在page中的，当一个page不足以放下新的undo log record时，会分配新的page，放到链表尾部。</p>
 <p>一个undo log segment其实是一个页叫<code>undo log header page</code>，有INSERT/UPDATE两个类型。这个页有一项内容<code>TRX_UNDO_PAGE_LIST</code>是一个链表，即undo page链表。</p>
 <p><img src="../images/20200510231756.png" alt></p>
@@ -336,19 +336,16 @@
 <li>选取的回滚段引用计数+1（多对一），防止被回收（truncate）。</li>
 <li>临时表使用临时表回滚段，特点是不用写redo log，普通表使用的普通回滚段需要写redo log。</li>
 </ol>
-<blockquote>
-<p>其实我很懵逼undo怎么写redo的</p>
-</blockquote>
 <h2 id="使用回滚段">3.2. 使用回滚段</h2><p>数据变更时，insert和update分别写相似但不同的undo log。</p>
 <ol>
 <li>临时表不用写redo log</li>
 <li>操作时未分配undo log statement，则对变更类型分配对应的undo log statement</li>
-<li>分配undo log statement时，如果缓存列表有可用的undo log statement(已提交事务<strong>满足一定条件</strong>后放入缓存)，取出来使用。</li>
+<li>分配undo log statement时，如果缓存列表有可用的undo log statement，取出来使用。</li>
 </ol>
 <h2 id="写入undo-log">3.3. 写入undo log</h2><p>insert的undo record长这样<br><img src="../images/20200510183601.png" alt></p>
 <ul>
-<li>type_cmpl：undo log类型，在这里好像没什么用</li>
-<li>undo no：事务id</li>
+<li>type_cmpl：undo log类型，purge时用</li>
+<li>undo no：事务编号</li>
 <li>table id：表id</li>
 </ul>
 <p>update的undo record长这样<br><img src="../images/20200510185016.png" alt></p>
@@ -357,11 +354,12 @@
 <li>type_cmpl：undo log类型，辅助purge线程清理</li>
 <li>(posN,lenN,u_old_colN)[]：字段旧值</li>
 <li>(pos,len,colN)[]：被更新的二级索引，回滚的时候需要</li>
-<li>undo no：事务id</li>
+<li>undo no：事务编号</li>
 <li>table id：表id</li>
 </ul>
+<p>事务no和事务id还是有些不同的，事务编号是用来排序的，在事务提交之前通过全局计数器生成，目的是为了放入histroy list有序，方便purge清理。</p>
 <p>不同类型的undo record下有些属性没有，例如索引没变化的情况下，<code>(pos,len,colN)[]</code>就没记录。</p>
-<p>(其实我不知道unique key)</p>
+<p>(其实我不知道记unique key干嘛的)</p>
 <h2 id="undo-log类型">3.4. undo log类型</h2><p>purge线程在对待undo log时，会根据undo log的类型做不同的动作，下面分为三类，括号里是动作</p>
 <ul>
 <li>插入：<ul>
@@ -380,8 +378,8 @@
 </ul>
 <h2 id="插入">3.5. 插入</h2><p>插入时构建的undo log，包括undo类型，undo no，table id，主键各列信息。</p>
 <p>insert undo log在事务提交后就会被删除。</p>
-<h2 id="更新">3.6. 更新</h2><p>更新时构建的undo log，包括undo类型，undo no，table id，主键各列信息，old_trx_id、old_roll_pointer，被更新的二级索引，n_updated，字段旧值。</p>
-<p>MVCC那篇讲过，每条记录都有三个隐藏字段，记录的old_trx_id、old_roll_pointer会被记入undo log，old trx_id表示修改的事务id，old_roll_pointer指向前一个undo record。</p>
+<h2 id="更新">3.6. 更新</h2><p>更新时构建的undo log，包括undo类型，undo no，table id，主键各列信息，data_trx_id、data_roll_pointer，被更新的二级索引，n_updated，字段旧值。</p>
+<p>MVCC那篇讲过，每行记录都有三个隐藏字段，所以记录的<code>old_trx_id</code>、<code>old_roll_pointer</code>会被记入undo log，old trx_id表示修改的事务id，old_roll_pointer指向前一个undo record。</p>
 <p>如果要更新一行记录的主键，需要删除记录（delete_mark置1，不能同步删除，为了MVCC），再插入新记录，所以会有<code>TRX_UNDO_DEL_MARK_REC</code>和<code>TRX_UNDO_INSERT_REC</code>两条日志。</p>
 <p>对于二级索引的更新都是删除+插入。</p>
 <p>如果更新一行前后的存储空间不一样大，也需要删除（同步删除）再插入。</p>
@@ -391,13 +389,13 @@
 <li>purge阶段：这个发生在事务提交后，将记录移动到垃圾链表，等待复用。</li>
 </ol>
 <p>垃圾链表是指数据页上的一个属性<code>PAGE_FREE</code>，指向一个链表的头节点，可以参阅文章底部的链接。</p>
-<p>删除类型的undo log少了n_updated和字段旧值，以及被更新的二级索引。</p>
+<p>删除属于更新，所以他们的undo log是同一个数据结构，不过删除类型的undo log少了n_updated和字段旧值，以及被更新的二级索引。</p>
 <h2 id="事务prepare">3.8. 事务prepare</h2><p>事务开始的阶段，需要将undo log header page的事务状态<code>TRX_UNDO_STATE</code>设置为<code>TRX_UNDO_PREPARED</code><br><img src="../images/20200512183520.png" alt></p>
 <h2 id="事务提交">3.9. 事务提交</h2><p>先说一下history list，<code>show engine innodb status</code>执行这个命令我们可以看到history list</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">*** WE ROLL BACK TRANSACTION (1)</span><br><span class="line"><span class="comment">------------</span></span><br><span class="line">TRANSACTIONS</span><br><span class="line"><span class="comment">------------</span></span><br><span class="line">Trx id counter 2915975770</span><br><span class="line"><span class="keyword">Purge</span> done <span class="keyword">for</span> trx<span class="string">'s n:o &lt; 2915975770 undo n:o &lt; 0 state: running but idle</span></span><br><span class="line"><span class="string">History list length 47</span></span><br><span class="line"><span class="string">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION 421366361910208, not started</span></span><br><span class="line"><span class="string">0 lock struct(s), heap size 1136, 0 row lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION 421366361903824, not started</span></span><br><span class="line"><span class="string">0 lock struct(s), heap size 1136, 0 row lock(s)</span></span><br></pre></td></tr></table></figure>
 
 <p>这个值表示还有多少undo log没被清理，这个值太大的话，说明有undo log由于有大事务存在而无法被清理。</p>
-<p><code>Undo Log Segment Header</code>有个<code>TRX_UNDO_STATE</code>事务提交时，<code>TRX_UNDO_STATE</code>有三种值，</p>
+<p><code>Undo Log Segment Header</code>有个<code>TRX_UNDO_STATE</code>，事务提交时，<code>TRX_UNDO_STATE</code>有三种值，</p>
 <ul>
 <li>如果当前的undo log只占一个page，且占用大小使用不足其3/4时(TRX_UNDO_PAGE_REUSE_LIMIT)，则状态设置为<code>TRX_UNDO_CACHED</code>，该undo对象会随后加入到undo cache list上；</li>
 <li>如果事务类型是<code>TRX_UNDO_INSERT_REC</code>，则状态设置为<code>TRX_UNDO_TO_FREE</code></li>
@@ -410,10 +408,8 @@
 <p>如果<strong>insert undo</strong>需要缓存，则放入回滚段的insert_undo_cached链表上；否则释放undo对象内存。和<strong>update undo</strong>不同的是，<strong>insert undo</strong>不需要放入hisotry list。</p>
 <p>事务提交后，回滚段的引用计数-1。</p>
 <p>tip1：由于cache的原因，即使db空闲中，history list的长度一般都不会是0。<br>tip2：insert undo的重用是直接reset，而update undo的重用是会和上一个事务的undo page共存的，具体是undo page上的undo log header有<code>TRX_UNDO_NEXT_LOG</code> 和<code>TRX_UNDO_PREV_LOG</code>来表示事务在页面中的偏移量的</p>
-<h2 id="清理-purge">3.10. 清理 purge</h2><p>purge发生在事务commit时。update undo会被放入history list中，当没有活跃的事务作用于undo log时，会被purge线程清理。如何判断有没有活跃的事务作用于undo log?innodb会快克隆一个最老的read view，所有在这个read view之前的undo log都是可以清理的。</p>
-<p>purge线程从history list批量取到undo log，</p>
-<p>对于in-place更新，需要看需不需要清理二级索引。</p>
-<p>对于删除操作，需要将删除记录放入数据页垃圾链表中。</p>
+<h2 id="清理-purge">3.10. 清理 purge</h2><p>purge发生在事务commit时。update undo会被放入history list中，当没有活跃的事务作用于undo log时，会被purge线程清理。如何判断有没有活跃的事务作用于undo log?innodb会快克隆一个活跃的最老的read view，所有在这个read view之前的undo log都是可以清理的。</p>
+<p>purge线程从history list批量取到undo log后，对于in-place更新，需要看需不需要清理二级索引；对于删除操作，需要将删除记录放入数据页垃圾链表<code>PAGE_FREE</code>中。</p>
 <h2 id="回滚">3.11. 回滚</h2><p>事务回滚只需要拿到undo log的进行逆向操作就可以了。</p>
 <p>对于标记删除的记录清理delete_mark；对于更新，将数据回滚到最老版本，回滚索引；对于插入操作，直接删除聚集索引（后）和二级索引（先）。</p>
 <h2 id="持久化">3.12. 持久化</h2><p>todo</p>
