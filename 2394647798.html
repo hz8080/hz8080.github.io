@@ -19,7 +19,7 @@
   
   <title>[JVM]JVM中三色标记法 | 土川的自留地</title>
   <meta name="description" content="三色标记算法是描述追踪式回收器的一种有用的方法，利用它可以推演回收器的正确性。对象分成三种类型:  黑色:根对象，或者该对象与它的子对象都被扫描 灰色:对象本身被扫描,但还没扫描完该对象中的子对象 白色:未被扫描对象，扫描完成所有对象之后，最终为白色的为不可达对象，即垃圾对象  根对象被置为黑色，子对象被置为灰色。继续由灰色遍历,将已扫描了子对象的对象置为黑色。 遍历了所有可达的对象后，所有可达的">
-<meta name="keywords" content="JVM,GC">
+<meta name="keywords" content="GC,JVM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[JVM]JVM中三色标记法">
 <meta property="og:url" content="https://htchz.cc/2394647798.html">
