@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000">
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top">
+  
+  
+  <title>[Mysql]binlog | 土川的自留地</title>
+  <meta name="description" content="binlog是server层的日志，对于innodb来说，只有binlog写完后，才能提交redo log。binlog记录逻辑语句，只会记录写类似于sql的日志。binlog主要的作用  崩溃恢复 主从复制  1. 组织结构1.1. 文件binlog的相关配置可以执行show variables like &amp;#39;%bin%&amp;#39;;查看 12345678910111213141516171">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Mysql]binlog">
+<meta property="og:url" content="https://htchz.cc/2414692924.html">
+<meta property="og:site_name" content="土川的自留地">
+<meta property="og:description" content="binlog是server层的日志，对于innodb来说，只有binlog写完后，才能提交redo log。binlog记录逻辑语句，只会记录写类似于sql的日志。binlog主要的作用  崩溃恢复 主从复制  1. 组织结构1.1. 文件binlog的相关配置可以执行show variables like &amp;#39;%bin%&amp;#39;;查看 12345678910111213141516171">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-05-29T09:11:01.940Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[Mysql]binlog">
+<meta name="twitter:description" content="binlog是server层的日志，对于innodb来说，只有binlog写完后，才能提交redo log。binlog记录逻辑语句，只会记录写类似于sql的日志。binlog主要的作用  崩溃恢复 主从复制  1. 组织结构1.1. 文件binlog的相关配置可以执行show variables like &amp;#39;%bin%&amp;#39;;查看 12345678910111213141516171">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://htchz.cc/2414692924.html">
+  
+    <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/unnamed.png" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+</head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/fennecs" target="_blank">
+          <img class="img-circle img-rotate" src="/images/unnamed.png" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">土川</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">后端码农</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Guangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>碧油鸡!碧油鸡！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Dubbo/">Dubbo</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Firebase/">Firebase</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Golang基础/">Golang基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java基础/">Java基础</a><span class="category-list-count">36</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Mysql/">Mysql</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Proxy/">Proxy</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/分布式/">分布式</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器/">容器</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/建站/">建站</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/微服务/">微服务</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/碎碎念/">碎碎念</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AOP/">AOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BT/">BT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BUG/">BUG</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bean/">Bean</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/">GC</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/">HTTP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Https/">Https</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hystrix/">Hystrix</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IOC/">IOC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/">JVM</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java集合/">Java集合</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Json/">Json</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/">Mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NIO/">NIO</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Nginx/">Nginx</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOP/">OOP</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP/">TCP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ZAB/">ZAB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bbr/">bbr</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/deploy/">deploy</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/goroutine/">goroutine</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iptables/">iptables</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/istio/">istio</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jdk8/">jdk8</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/k8s/">k8s</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/multithread/">multithread</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/properties/">properties</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/raft/">raft</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/一致性算法/">一致性算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位图/">位图</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/位运算/">位运算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/坑/">坑</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分片/">数据分片</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/服务限流/">服务限流</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/正则/">正则</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/运维/">运维</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/AOP/" style="font-size: 13.33px;">AOP</a> <a href="/tags/BT/" style="font-size: 13px;">BT</a> <a href="/tags/BUG/" style="font-size: 13.5px;">BUG</a> <a href="/tags/Bean/" style="font-size: 13px;">Bean</a> <a href="/tags/GC/" style="font-size: 13.67px;">GC</a> <a href="/tags/HTTP/" style="font-size: 13px;">HTTP</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/Https/" style="font-size: 13px;">Https</a> <a href="/tags/Hystrix/" style="font-size: 13px;">Hystrix</a> <a href="/tags/IOC/" style="font-size: 13px;">IOC</a> <a href="/tags/JVM/" style="font-size: 13.83px;">JVM</a> <a href="/tags/Java集合/" style="font-size: 13.17px;">Java集合</a> <a href="/tags/Json/" style="font-size: 13px;">Json</a> <a href="/tags/Mysql/" style="font-size: 13px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 13.17px;">NIO</a> <a href="/tags/Nginx/" style="font-size: 13px;">Nginx</a> <a href="/tags/OOP/" style="font-size: 13.33px;">OOP</a> <a href="/tags/TCP/" style="font-size: 13.17px;">TCP</a> <a href="/tags/ZAB/" style="font-size: 13px;">ZAB</a> <a href="/tags/bbr/" style="font-size: 13px;">bbr</a> <a href="/tags/deploy/" style="font-size: 13px;">deploy</a> <a href="/tags/goroutine/" style="font-size: 13.17px;">goroutine</a> <a href="/tags/iptables/" style="font-size: 13px;">iptables</a> <a href="/tags/istio/" style="font-size: 13px;">istio</a> <a href="/tags/jdk8/" style="font-size: 13.17px;">jdk8</a> <a href="/tags/k8s/" style="font-size: 13.17px;">k8s</a> <a href="/tags/multithread/" style="font-size: 14px;">multithread</a> <a href="/tags/properties/" style="font-size: 13px;">properties</a> <a href="/tags/raft/" style="font-size: 13.17px;">raft</a> <a href="/tags/一致性算法/" style="font-size: 13.17px;">一致性算法</a> <a href="/tags/事务/" style="font-size: 13px;">事务</a> <a href="/tags/位图/" style="font-size: 13px;">位图</a> <a href="/tags/位运算/" style="font-size: 13px;">位运算</a> <a href="/tags/坑/" style="font-size: 13px;">坑</a> <a href="/tags/数据分片/" style="font-size: 13px;">数据分片</a> <a href="/tags/服务限流/" style="font-size: 13.17px;">服务限流</a> <a href="/tags/正则/" style="font-size: 13px;">正则</a> <a href="/tags/运维/" style="font-size: 13px;">运维</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">十月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">八月 2019</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">五月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">一月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">十二月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">十一月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">九月 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">八月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">七月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">六月 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">五月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a><span class="archive-list-count">23</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#组织结构"><span class="toc-text">1. 组织结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#文件"><span class="toc-text">1.1. 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#rotation"><span class="toc-text">1.2. rotation</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#模式"><span class="toc-text">2. 模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#statement"><span class="toc-text">2.1. statement</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#row"><span class="toc-text">2.2. row</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mixed"><span class="toc-text">2.3. mixed</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#mysqlbinlog"><span class="toc-text">2.4. mysqlbinlog</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#结构体"><span class="toc-text">2.4.1. 结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#binlog-checksum"><span class="toc-text">2.4.2. binlog-checksum</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SHOW-BINLOG-EVENTS"><span class="toc-text">2.5. SHOW BINLOG EVENTS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GTID"><span class="toc-text">2.6. GTID</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#主从复制"><span class="toc-text">3. 主从复制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">4. 参考</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Mysql-binlog" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [Mysql]binlog
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2414692924.html" class="article-date">
+	  <time datetime="2020-05-26T01:51:00.000Z" itemprop="datePublished">2020-05-26</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Mysql/">Mysql</a>
+  </span>
+
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2414692924.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.6k(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 11(分)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>binlog是server层的日志，对于innodb来说，只有binlog写完后，才能提交redo log。binlog记录逻辑语句，只会记录写类似于sql的日志。binlog主要的作用</p>
+<ol>
+<li>崩溃恢复</li>
+<li>主从复制</li>
+</ol>
+<h1 id="组织结构">1. 组织结构</h1><h2 id="文件">1.1. 文件</h2><p>binlog的相关配置可以执行<code>show variables like &#39;%bin%&#39;;</code>查看</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like '%bin%';</span><br><span class="line">+<span class="comment">--------------------------------------------+---------------------------------+</span></span><br><span class="line">| Variable_name                              | Value                           |</span><br><span class="line">+<span class="comment">--------------------------------------------+---------------------------------+</span></span><br><span class="line">| bind_address                               | *                               |</span><br><span class="line">| binlog_cache_size                          | 32768                           |</span><br><span class="line">| binlog_checksum                            | CRC32                           |</span><br><span class="line">| binlog_direct_non_transactional_updates    | OFF                             |</span><br><span class="line">| binlog_error_action                        | ABORT_SERVER                    |</span><br><span class="line">| binlog_format                              | ROW                             |</span><br><span class="line">| binlog_group_commit_sync_delay             | 0                               |</span><br><span class="line">| binlog_group_commit_sync_no_delay_count    | 0                               |</span><br><span class="line">| binlog_gtid_simple_recovery                | ON                              |</span><br><span class="line">| binlog_max_flush_queue_time                | 0                               |</span><br><span class="line">| binlog_order_commits                       | ON                              |</span><br><span class="line">| binlog_row_image                           | FULL                            |</span><br><span class="line">| binlog_rows_query_log_events               | OFF                             |</span><br><span class="line">| binlog_stmt_cache_size                     | 32768                           |</span><br><span class="line">| binlog_transaction_dependency_history_size | 25000                           |</span><br><span class="line">| binlog_transaction_dependency_tracking     | COMMIT_ORDER                    |</span><br><span class="line">| innodb_api_enable_binlog                   | OFF                             |</span><br><span class="line">| innodb_locks_unsafe_for_binlog             | OFF                             |</span><br><span class="line">| log_bin                                    | ON                              |</span><br><span class="line">| log_bin_basename                           | /data/mysql3306/mysql-bin       |</span><br><span class="line">| log_bin_index                              | /data/mysql3306/mysql-bin.index |</span><br><span class="line">| log_bin_trust_function_creators            | ON                              |</span><br><span class="line">| log_bin_use_v1_row_events                  | OFF                             |</span><br><span class="line">| log_statements_unsafe_for_binlog           | ON                              |</span><br><span class="line">| max_binlog_cache_size                      | 18446744073709547520            |</span><br><span class="line">| max_binlog_size                            | 536870912                       |</span><br><span class="line">| max_binlog_stmt_cache_size                 | 18446744073709547520            |</span><br><span class="line">| sql_log_bin                                | ON                              |</span><br><span class="line">| sync_binlog                                | 1                               |</span><br><span class="line">+<span class="comment">--------------------------------------------+---------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>执行<code>show master status;</code>可以看到当前写入的二进制文件的名字和位置。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show master status;</span><br><span class="line">+<span class="comment">------------------+-----------+--------------+------------------+-------------------+</span></span><br><span class="line">| File             | Position  | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |</span><br><span class="line">+<span class="comment">------------------+-----------+--------------+------------------+-------------------+</span></span><br><span class="line">| mysql-bin.000930 | 178613715 |              | mysql,test       |                   |</span><br><span class="line">+<span class="comment">------------------+-----------+--------------+------------------+-------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.10</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>binlog主要有两种文件：</p>
+<ul>
+<li>二进制日志索引文件（文件名后缀为.index）用于记录所有有效的的二进制文件。</li>
+<li>二进制日志文件（文件名后缀为.****）记录数据库所有的DDL和DML语句事件</li>
+</ul>
+<p>如上输出，二进制日志文件存放的<code>basename</code>是”/data/mysql3306/mysql-bin.****”，二进制日志索引文件路径是”/data/mysql3306/mysql-bin.index”,</p>
+<p>具体如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@dev_test63 mysql3306]# ls -l mysql-bin*</span><br><span class="line">-rw-r----- 1 mysql mysql 538582976 5月  22 01:17 mysql-bin.000919</span><br><span class="line">-rw-r----- 1 mysql mysql 536879010 5月  22 12:03 mysql-bin.000920</span><br><span class="line">-rw-r----- 1 mysql mysql 536885288 5月  22 20:03 mysql-bin.000921</span><br><span class="line">-rw-r----- 1 mysql mysql 536871917 5月  23 05:05 mysql-bin.000922</span><br><span class="line">-rw-r----- 1 mysql mysql 536871391 5月  23 21:40 mysql-bin.000923</span><br><span class="line">-rw-r----- 1 mysql mysql 536895385 5月  24 07:03 mysql-bin.000924</span><br><span class="line">-rw-r----- 1 mysql mysql 536945072 5月  25 00:03 mysql-bin.000925</span><br><span class="line">-rw-r----- 1 mysql mysql 536904757 5月  25 09:03 mysql-bin.000926</span><br><span class="line">-rw-r----- 1 mysql mysql 536871742 5月  25 19:28 mysql-bin.000927</span><br><span class="line">-rw-r----- 1 mysql mysql 536870960 5月  26 04:34 mysql-bin.000928</span><br><span class="line">-rw-r----- 1 mysql mysql 536871255 5月  26 19:33 mysql-bin.000929</span><br><span class="line">-rw-r----- 1 mysql mysql 153202413 5月  27 00:22 mysql-bin.000930</span><br><span class="line">-rw-r----- 1 mysql mysql       228 5月  26 19:33 mysql-bin.index</span><br></pre></td></tr></table></figure>
+
+<p><code>sync_binlog</code>是用来表示同步刷binlog，如果数据库繁忙可能会造成磁盘io压力大</p>
+<p><code>sql_log_bin</code>表示开启binlog，开关都需要重启mysql</p>
+<p><strong>mysql-bin.index</strong>这个文件很简单，只是记录了当前的binlog列表</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@dev_test63 mysql3306]# cat mysql-bin.index</span><br><span class="line">./mysql-bin.000919</span><br><span class="line">./mysql-bin.000920</span><br><span class="line">./mysql-bin.000921</span><br><span class="line">./mysql-bin.000922</span><br><span class="line">./mysql-bin.000923</span><br><span class="line">./mysql-bin.000924</span><br><span class="line">./mysql-bin.000925</span><br><span class="line">./mysql-bin.000926</span><br><span class="line">./mysql-bin.000927</span><br><span class="line">./mysql-bin.000928</span><br><span class="line">./mysql-bin.000929</span><br><span class="line">./mysql-bin.000930</span><br></pre></td></tr></table></figure>
+
+<p>而binlog是一个二进制文件集合，每个binlog文件以一个4字节的魔数<code>0xfe62696e</code>开头（后3字节其实就是”bin”）</p>
+<p>接着是一组Events，Event由header组成，header记录了创建时间、服务器标识等，data是数据。一个binlog文件里，第一个event描述binlog的格式，最后一个binlog描述下一个binlog文件的信息。</p>
+<h2 id="rotation">1.2. rotation</h2><p>当下面三种情况发生时，binlog会rotate新文件：</p>
+<ul>
+<li>实例停止或重启时</li>
+<li>flush logs 命令；</li>
+<li>当前binlog &gt; <code>max_binlog_size</code>(像上面的配置是512M)</li>
+</ul>
+<blockquote>
+<p>如果有一个大事务执行时，很可能会发生一个binlog文件稍大于<code>max_binlog_size</code></p>
+</blockquote>
+<h1 id="模式">2. 模式</h1><p>binlog有三种记录模式，分别是<strong>statement</strong>，<strong>row</strong>，<strong>mixed</strong>，通过<code>binlog_format</code>来指定，可以在运行时指定。</p>
+<!--TODO mysql binlog设置-->
+
+<h2 id="statement">2.1. statement</h2><p><strong>statement</strong>记录的是原语句，你执行什么语句就会记录什么语句。这在主从复制的时候就会出现一些问题：</p>
+<p>这里提一个问题：<strong>为什么大多数数据库的默认隔离级别是RC，而innodb是RR呢</strong>：</p>
+<p>这是一个历史遗留问题，网上也可以找到很多解释，大体就是：在mysql5.1.5之前只有<strong>statement</strong>模式，如果事务用RC隔离级别，就会可能出现主从不一致的情况。</p>
+<!--TODO 验证-->
+<p>现在已经不能在<strong>statement</strong>模式下执行RC事务了，会报下面的错误：</p>
+<blockquote>
+<p>Cannot execute statement: impossible to write to binary log since BINLOG_FORMAT = STATEMENT and at least one table uses a storage engine limited to row-based logging. InnoDB is limited to row-logging when transaction isolation level is READ COMMITTED or READ UNCOMMITTED.</p>
+</blockquote>
+<p>假设RC允许，那么假设student表有score字段，</p>
+<table>
+<thead>
+<tr>
+<th>事务A</th>
+<th>事务B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>begin;</td>
+<td>begin;</td>
+</tr>
+<tr>
+<td>delete from student where score &lt; 6;</td>
+<td>/</td>
+</tr>
+<tr>
+<td>/</td>
+<td>insert into student(score) values(1);</td>
+</tr>
+<tr>
+<td>/</td>
+<td>commit;</td>
+</tr>
+<tr>
+<td>commit;</td>
+<td>/</td>
+</tr>
+</tbody></table>
+<p>在RR级别下，事务B的语句会阻塞，因为事务A会给满足条件的列加上X锁，给间隙加上gap锁，所以事务B是会被阻塞的。<br>在RC级别下，事务B的语句是不会阻塞的，因此先于事务A提交，提交完成写入binlog，接着A提交写入binlog，</p>
+<p>所以在binlog里是这样的（只是举个🌰）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> student(age) <span class="keyword">values</span>(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> student <span class="keyword">where</span> age &lt; <span class="number">6</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样binlog被从库消费之后就主从就不一致。</p>
+<h2 id="row">2.2. row</h2><p><strong>row</strong>是记录到每一行的逻辑语句，比如执行<code>update student set name = &#39;土川&#39; where age &lt; 10</code>的sql，就会生成n条记录。</p>
+<p>这样可以避免<strong>statement</strong>产生的问题，<strong>缺点</strong>就是日志量太大，可能会产生io压力。</p>
+<h2 id="mixed">2.3. mixed</h2><p><strong>mixed</strong>模式是由mysql自行判断使用哪种模式。转换条件<a href="https://dev.mysql.com/doc/refman/5.7/en/binary-log-mixed.html" target="_blank" rel="noopener">传送门</a></p>
+<blockquote>
+<p>新版本的MySQL对row level模式也被做了优化，并不是所有的修改都会以row level来记录，像遇到表结构变更的时候就会以statement模式来记录，如果sql语句确实就是update或者delete等修改数据的语句，那么还是会记录所有行的变更；因此，现在一般使用row level即可。</p>
+</blockquote>
+<h2 id="mysqlbinlog">2.4. mysqlbinlog</h2><p>mysqlbinlog是mysql提供的一个查看binlog的工具，通过该工具可以将二进制文件解析为文本供我们进行阅读，还可以查看远程服务器上的binlog，可以指定时间或偏移量作为start、stop来作为查询条件。如果指定的偏移量不是一个event的起始偏移量，则会报错。</p>
+<p>当前msyql是row模式，执行<code>mysqlbinlog -v --start-datetime=&quot;2020-05-25 09:59:59&quot; --stop-datetime=&quot;2020-05-25 10:00:00&quot; mysql-bin.000927 --base64-output=decode-rows</code>，<code>--base64-output=decode-rows</code>为了解码<code>row</code>格式，<code>-v</code>详细输出语句。截取一部分如下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># at 26237733</span></span><br><span class="line"><span class="comment">#200525  9:59:59 server id 3306  end_log_pos 26237798 CRC32 0xbcd552f0 	GTID [commit=no]</span></span><br><span class="line"><span class="keyword">SET</span> @@SESSION.GTID_NEXT= <span class="string">'ANONYMOUS'</span><span class="comment">/*!*/</span>;</span><br><span class="line"><span class="comment"># at 26237798</span></span><br><span class="line"><span class="comment">#200525  9:59:59 server id 3306  end_log_pos 26237883 CRC32 0x5558cbbe 	Query	thread_id=43976966	exec_time=0	error_code=0</span></span><br><span class="line"><span class="keyword">SET</span> <span class="built_in">TIMESTAMP</span>=<span class="number">1590371999</span><span class="comment">/*!*/</span>;</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line"><span class="comment">/*!*/</span>;</span><br><span class="line"><span class="comment"># at 26237883</span></span><br><span class="line"><span class="comment">#200525  9:59:59 server id 3306  end_log_pos 26237968 CRC32 0x8f9f400f 	Table_map: `superq_db`.`superq_trigger_registry` mapped to number 96550</span></span><br><span class="line"><span class="comment"># at 26237968</span></span><br><span class="line"><span class="comment">#200525  9:59:59 server id 3306  end_log_pos 26238162 CRC32 0x560afdaa 	Update_rows: table id 96550 flags: STMT_END_F</span></span><br><span class="line"><span class="comment">### UPDATE `superq_db`.`superq_trigger_registry`</span></span><br><span class="line"><span class="comment">### WHERE</span></span><br><span class="line"><span class="comment">###   @1=15093</span></span><br><span class="line"><span class="comment">###   @2='EXECUTOR'</span></span><br><span class="line"><span class="comment">###   @3='job-executor-saber'</span></span><br><span class="line"><span class="comment">###   @4='172.88.2.128:19012'</span></span><br><span class="line"><span class="comment">###   @5='172.88.2.128:10099'</span></span><br><span class="line"><span class="comment">###   @6=1590371989</span></span><br><span class="line"><span class="comment">### SET</span></span><br><span class="line"><span class="comment">###   @1=15093</span></span><br><span class="line"><span class="comment">###   @2='EXECUTOR'</span></span><br><span class="line"><span class="comment">###   @3='job-executor-saber'</span></span><br><span class="line"><span class="comment">###   @4='172.88.2.128:19012'</span></span><br><span class="line"><span class="comment">###   @5='172.88.2.128:10099'</span></span><br><span class="line"><span class="comment">###   @6=1590371999</span></span><br><span class="line"><span class="comment"># at 26238162</span></span><br><span class="line"><span class="comment">#200525  9:59:59 server id 3306  end_log_pos 26238193 CRC32 0x1e662746 	Xid = 3290666026</span></span><br><span class="line"><span class="keyword">COMMIT</span><span class="comment">/*!*/</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code># at xxxx</code>：一个event的开头，</li>
+<li><code>#200525  9:59:59</code>：时间，20年5月25日，9时59分59秒</li>
+<li><code>server id 3306</code>：server编号</li>
+<li><code>end_log_pos 26237798</code>：下一个事件开始的位置（即当前事件的结束位置+1）</li>
+<li><code>CRC32 0xbcd552f0</code>：CRC32是校验和的算法，在上面配置清单里<code>binlog_checksum</code>可以看到，后面跟着的是32位校验和。</li>
+<li><code>Query</code>：event type，具体可以翻阅<a href="https://dev.mysql.com/doc/internals/en/event-classes-and-types.html" target="_blank" rel="noopener">Event Classes and Types</a></li>
+<li><code>thread_id=43976966</code>：线程id</li>
+<li><code>exec_time=0</code>：执行时间</li>
+<li><code>error_code=0</code>：错误码，0表示无错误</li>
+<li><code>Xid = 3290666026</code>：表示redo log和binlog做XA的Xid</li>
+</ul>
+<h3 id="结构体">2.4.1. 结构体</h3><p>前面说到，event分为header和data，事实上，binlog 事件的结构主要有3个版本：</p>
+<ul>
+<li>v1: Used in MySQL 3.23</li>
+<li>v3: Used in MySQL 4.0.2 though 4.1</li>
+<li>v4: Used in MySQL 5.0 and up</li>
+</ul>
+<p>现在基本用的是v4版本。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">+=====================================+</span><br><span class="line">| event  | timestamp         0 : 4    |</span><br><span class="line">| header +<span class="comment">----------------------------+</span></span><br><span class="line">|        | type_code         4 : 1    |</span><br><span class="line">|        +<span class="comment">----------------------------+</span></span><br><span class="line">|        | server_id         5 : 4    |</span><br><span class="line">|        +<span class="comment">----------------------------+</span></span><br><span class="line">|        | event_length      9 : 4    |</span><br><span class="line">|        +<span class="comment">----------------------------+</span></span><br><span class="line">|        | next_position    13 : 4    |</span><br><span class="line">|        +<span class="comment">----------------------------+</span></span><br><span class="line">|        | flags            17 : 2    |</span><br><span class="line">|        +<span class="comment">----------------------------+</span></span><br><span class="line">|        | extra_headers    19 : x-19 |</span><br><span class="line">+=====================================+</span><br><span class="line">| event  | fixed part        x : y    |</span><br><span class="line">| data   +<span class="comment">----------------------------+</span></span><br><span class="line">|        | variable part              |</span><br><span class="line">+=====================================+</span><br></pre></td></tr></table></figure>
+
+<p>上面用<code>offset : length</code>描述了各个属性的位置，如果事件头的长度是 x 字节，那么事件体的长度为 (event_length - x) 字节；设事件体中 fixed part 的长度为 y 字节，那么 variable part 的长度为 (event_length - (x + y)) 字节</p>
+<h3 id="binlog-checksum">2.4.2. binlog-checksum</h3><p>校验和功能是为了防止传输过程中发生差错，主从不一致。</p>
+<p>关于binlog-checksum有三个参数，分别是</p>
+<ul>
+<li><code>binlog_checksum</code>：默认值是CRC32，可以设置为<code>NONE</code></li>
+<li><code>master_verify_checksum</code>：主库校验event校验和，默认为0，在master thread进行dump的时候校验，在<code>SHOW BINLOG EVENTS</code>校验</li>
+<li><code>slave_sql_verify_checksum</code>：从库校验event校验和，默认为1，当IO thread把event写入到relay log（从库读取到的binlog生成relay log）的时候校验。</li>
+</ul>
+<p>mysqlbinlog可以加上<code>--verify-binlog-checksum</code>参数，打印有问题的sql。</p>
+<p>如果校验失败会报错，可以用<code>pt-table-checksum</code>工具进行修正，关于更多，另行了解。</p>
+<h2 id="SHOW-BINLOG-EVENTS">2.5. SHOW BINLOG EVENTS</h2><p>这个是mysql命令，也是用来阅读binlog。使用方式是<code>SHOW BINLOG EVENTS [IN &#39;log_name&#39;] [FROM pos] [LIMIT [offset,] row_count]</code>，中括号都是可选项。</p>
+<h2 id="GTID">2.6. GTID</h2><p>可以在日志里看到<code>GTID</code>的字眼，GTID即Global Transaction ID，全局事务id，由<code>server_uuid:transaction_id</code>组成，是在mysql5.6引进的一个特性。</p>
+<p>组复制插件<strong>MGR</strong>mysql官方的一个高可用插件，使用了PAXOS协议。在这种一致性协议中需要有一个全局增长的command index，GTID就承担了这个角色。</p>
+<p>执行<code>show variables like &#39;%gtid%&#39;;</code>，输出</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">+<span class="comment">----------------------------------+-----------+</span></span><br><span class="line">| Variable_name                    | Value     |</span><br><span class="line">+<span class="comment">----------------------------------+-----------+</span></span><br><span class="line">| binlog_gtid_simple_recovery      | ON        |</span><br><span class="line">| enforce_gtid_consistency         | OFF       |</span><br><span class="line">| gtid_executed_compression_period | 1000      |</span><br><span class="line">| gtid_mode                        | OFF       |</span><br><span class="line">| gtid_next                        | AUTOMATIC |</span><br><span class="line">| gtid_owned                       |           |</span><br><span class="line">| gtid_purged                      |           |</span><br><span class="line">| session_track_gtids              | OFF       |</span><br><span class="line">+<span class="comment">----------------------------------+-----------+</span></span><br><span class="line">8 rows in <span class="keyword">set</span> (<span class="number">0.02</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p><code>gtid_mode</code>其实是<code>OFF</code>状态。</p>
+<p>关于更多，另行了解。</p>
+<h1 id="主从复制">3. 主从复制</h1><p>主从复制有基于binlog和基于GTID两种方式。基于binlog的复制模式的基本流程是：</p>
+<ol>
+<li>master事务提交，将记录变更写入binlog</li>
+<li>slave的io进程连接master，从指定位置或从0开始请求日志</li>
+<li>master返回日志给slave，并带上binlog名称和下一个binlog消费位置</li>
+<li>slave接收到日志，将日志追加到relay log末端，并记录binlog名称和binlog消费位置，下次请求使带上。</li>
+<li>slave的sql进程不断读relay log，执行sql。</li>
+<li>如果slave开启了binlog，又会将执行的sql变更记入binlog；如果slave又是其他slave的master，就会执行一样的逻辑。</li>
+</ol>
+<p>在slave上执行，<code>show slave status\G</code>，部分输出如下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show slave status\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">               Slave_IO_State: Waiting for master to send event</span><br><span class="line">                  Master_Host: 11.198.116.79</span><br><span class="line">                  Master_User: replicator</span><br><span class="line">                  Master_Port: 3018</span><br><span class="line">                Connect_Retry: 60</span><br><span class="line">              Master_Log_File: mysql-bin.000831</span><br><span class="line">          Read_Master_Log_Pos: 1151797</span><br><span class="line">               Relay_Log_File: slave-relay.002490</span><br><span class="line">                Relay_Log_Pos: 313</span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000831</span><br><span class="line">             Slave_IO_Running: Yes</span><br><span class="line">            Slave_SQL_Running: Yes</span><br><span class="line">              Replicate_Do_DB:</span><br><span class="line">          Replicate_Ignore_DB:</span><br><span class="line">           Replicate_Do_Table:</span><br><span class="line">       Replicate_Ignore_Table:</span><br><span class="line">      Replicate_Wild_Do_Table:</span><br><span class="line">  Replicate_Wild_Ignore_Table:</span><br><span class="line">                   Last_Errno: 0</span><br><span class="line">                   Last_Error:</span><br><span class="line">                 Skip_Counter: 0</span><br><span class="line">          Exec_Master_Log_Pos: 1151797</span><br><span class="line">              Relay_Log_Space: 769</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>Read_Master_Log_Pos</code>和<code>Exec_Master_Log_Pos</code>一致，表示从库已经追赶上主库。</p>
+<p>在主库执行<code>show master status\G</code>，可以看到主库当前正在写入的binlog和位置。</p>
+<h1 id="参考">4. 参考</h1><ol>
+<li><a href="https://dev.mysql.com/doc/internals/en/event-structure.html" target="_blank" rel="noopener">Event Structure</a></li>
+<li><a href="https://dominicpoi.com/2019/06/16/MySQL-1/" target="_blank" rel="noopener">MySQL为什么默认隔离级别为可重复读？</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/33504555" target="_blank" rel="noopener">10分钟学会Mysql之Binlog</a></li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/2414692924.html" title="[Mysql]binlog" target="_blank" rel="external">https://htchz.cc/2414692924.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/1559835943.html" title="[Mysql]redo log和bin log"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/fennecs" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/2414692924.html';
+        
+        this.page.identifier = 'Mysql-binlog';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
