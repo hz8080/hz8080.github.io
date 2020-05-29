@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200525182526.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526000820.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526001104.png">
-<meta property="og:updated_time" content="2020-05-29T09:28:34.516Z">
+<meta property="og:updated_time" content="2020-05-29T09:38:16.326Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]redo log">
 <meta name="twitter:description" content="redo log记录物理数据页，所以无论执行多少次都是幂等的；而binlog是记录逻辑数据，执行多次就可能重复数据。 数据结构是一个环形数组，innodb将未写入磁盘的页叫做脏页，redo log的作用就是记录脏页的数据。 在宕机恢复时，一个事务是否持久化是根据redo log刷盘情况决定的。如果一个事务的redo log已经全部刷入磁盘，那么这个事务是有效的，反之需要根据undo log回滚。">
@@ -251,7 +251,7 @@
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
 	<a href="/1559835943.html" class="article-date">
-	  <time datetime="2020-05-19T14:00:04.000Z" itemprop="datePublished">2020-05-19</time>
+	  <time datetime="2020-05-19T14:00:05.000Z" itemprop="datePublished">2020-05-19</time>
 	</a>
 </span>
         
