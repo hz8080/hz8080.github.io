@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200525182526.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526000820.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526001104.png">
-<meta property="og:updated_time" content="2020-05-29T09:39:41.130Z">
+<meta property="og:updated_time" content="2020-05-29T09:52:39.868Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]漫游redo log">
 <meta name="twitter:description" content="redo log负责记录物理数据页，所以无论执行多少次都是幂等的；而binlog是记录逻辑数据，执行多次就可能重复数据。 数据结构是一个环形数组，innodb将未写入磁盘的页叫做脏页，redo log的作用就是记录脏页的数据。 在宕机恢复时，一个事务是否持久化是根据redo log刷盘情况决定的。如果一个事务的redo log已经全部刷入磁盘，那么这个事务是有效的，反之需要根据undo log回滚">
@@ -267,7 +267,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/1559835943.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.6k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.7k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 10(分)</span>
@@ -282,7 +282,7 @@
 <p>在宕机恢复时，一个事务是否持久化是根据redo log刷盘情况决定的。如果一个事务的redo log已经全部刷入磁盘，那么这个事务是有效的，反之需要根据undo log回滚。</p>
 <p>redo log在硬盘中是分成多块来存储的，以<code>ib_logfile[number]</code>命名。</p>
 <p>执行<code>SHOW GLOBAL VARIABLES LIKE &quot;innodb_log%&quot;;</code>，</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">innodb_log_buffer_size	    67108864</span><br><span class="line">innodb_log_checksums	    ON</span><br><span class="line">innodb_log_compressed_pages	ON</span><br><span class="line">innodb_log_file_size	    536870912</span><br><span class="line">innodb_log_files_in_group	4</span><br><span class="line">innodb_log_group_home_dir	./</span><br><span class="line">innodb_log_write_ahead_size	8192</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">+<span class="comment">-----------------------------+-----------+</span></span><br><span class="line">| Variable_name               | Value     |</span><br><span class="line">+<span class="comment">-----------------------------+-----------+</span></span><br><span class="line">| innodb_log_buffer_size      | 67108864  |</span><br><span class="line">| innodb_log_checksums        | ON        |</span><br><span class="line">| innodb_log_compressed_pages | ON        |</span><br><span class="line">| innodb_log_file_size        | 536870912 |</span><br><span class="line">| innodb_log_files_in_group   | 4         |</span><br><span class="line">| innodb_log_group_home_dir   | ./        |</span><br><span class="line">| innodb_log_write_ahead_size | 8192      |</span><br><span class="line">+<span class="comment">-----------------------------+-----------+</span></span><br></pre></td></tr></table></figure>
 
 <p><code>innodb_log_files_in_group</code>指定了redo log文件被分为几部分，每一部分的文件大小都是一样的，当写入ib_logfile3后，又继续写入ib_logfile0，如此循环。</p>
 <p>这是在磁盘里的文件，</p>
