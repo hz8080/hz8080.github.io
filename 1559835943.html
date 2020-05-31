@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200525182526.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526000820.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526001104.png">
-<meta property="og:updated_time" content="2020-05-29T10:27:32.814Z">
+<meta property="og:updated_time" content="2020-05-30T11:43:33.883Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]漫游redo log">
 <meta name="twitter:description" content="redo log负责记录物理数据页，所以无论执行多少次都是幂等的；而binlog是记录逻辑数据，执行多次就可能重复数据。 数据结构是一个环形数组，innodb将未写入磁盘的页叫做脏页，redo log的作用就是记录脏页的数据。 在宕机恢复时，一个事务是否持久化是根据redo log刷盘情况决定的。如果一个事务的redo log已经全部刷入磁盘，那么这个事务是有效的，反之需要根据undo log回滚">
@@ -295,7 +295,6 @@
 <li>redo log是顺序写入的，而数据页落盘是随机存储。</li>
 <li>延迟刷脏页可以起到合并多次修改的作用，mysql的最小存储单位是页，一个页有多行，如果每次修改一行就要更新整个页，并不是那么能接收。</li>
 </ul>
-<p>由于记录物理数据页，如果在一个事务里把a更新成b，又把b更新为a，会不会保存到redo log里的？</p>
 <p>有了redo log之后，对于一行数据，首先更新<strong>buffer pool</strong>（在这之前还有undo log），然后再写入log buffer。</p>
 <h1 id="组织结构">2. 组织结构</h1><p>由于redo记录的是物理变更，比如在“第100表空间第100页偏移量1024写入4个字节balabala”，而不是描述第几行改成什么样，一行记录变更涉及的物理页可能有很多，所以可能产生一条redo log，也有可能是多条redo log，这个和undo log不同。 </p>
 <h2 id="redo-log">2.1. redo log</h2><p>这是一条redo log的通用结构<br><img src="../images/20200525182526.png" alt></p>
@@ -346,6 +345,8 @@
 <p>可以看到LSN不是完全一致，测试环境db是空闲的，<strong>Log sequence number</strong>和<strong>log flushed up to</strong>是相同的，<strong>pages flushed up to</strong>落后，这是因为脏页很少的话可以暂时不刷到磁盘。</p>
 <p>一般来说，log sequence number &gt; log flushed up to 和 pages flushed up to &gt; last checkpoint at</p>
 <p>可能会出现数据页刷盘快于redo log刷盘的情况，这时checkpoint是有机制保护数据慢于日志，所以会暂停数据页刷盘，等待日志刷盘进度超过数据刷盘。</p>
+<p>由于记录物理数据页，如果在一个事务里把a更新成b，又把b更新为a，会不会保存到redo log里的？</p>
+<p>试验过后，执行<code>SHOW ENGINE INNODB STATUS\G</code>，可以看到<code>Log sequence number</code>有增加；</p>
 <h1 id="checkpoint">5. checkpoint</h1><p>由于redo log相当于给数据页做了个备份，所以事务提交时并不一定要把数据页落盘。但是：1：buffer pool是有限的，2：redo log buffer是有限的。<br>所以需要一个时机，将buffer pool里的数据落盘，同时清除redo log buffer里已经落盘的数据页，这个时机就是checkpoint。数据库重启后的恢复，只需要从checkpoint lsn算起，checkpoint lsn之前的数据都是认为已经持久化的。</p>
 <p>checkpoint的目的很简单，即把数据页落盘，但是什么时候、刷多少页到磁盘、从哪里取脏页都有些不同。</p>
 <p><strong>checkpoint_lsn</strong>是指checkpoint发生刷盘之后，记录此次checkpoint的lsn到redo log file的第一个文件头可以理解为管理数据页缓冲的数据结构，需要保证<br>FLUSH列表：LRU的<br>有两种Checkpoint，分别为：Sharp Checkpoint、Fuzzy Checkpoint。</p>
