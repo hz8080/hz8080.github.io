@@ -27,7 +27,7 @@
 <meta property="og:description" content="1. 两阶段提交innodb和bin log需要进行两阶段提交(Two-Phase Commit Protocol，2PC)，目的是为了保证日志一致性，要么都存在，要么都不存在。 要说明的是，两阶段提交不止redo log和binlog有关，undo log也是参与者。 XID是事务根据事务第一条query生成的id，通过XID将redo log和binlog关联起来。在上一篇的binlog日志里">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/20200605174715.png">
-<meta property="og:updated_time" content="2020-06-05T10:09:46.785Z">
+<meta property="og:updated_time" content="2020-06-05T10:10:13.239Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]两阶段提交和崩溃恢复">
 <meta name="twitter:description" content="1. 两阶段提交innodb和bin log需要进行两阶段提交(Two-Phase Commit Protocol，2PC)，目的是为了保证日志一致性，要么都存在，要么都不存在。 要说明的是，两阶段提交不止redo log和binlog有关，undo log也是参与者。 XID是事务根据事务第一条query生成的id，通过XID将redo log和binlog关联起来。在上一篇的binlog日志里">
@@ -317,7 +317,7 @@ redo log commit的顺序： T2 --&gt; T3 --&gt; T1</code></pre><p>可以看到re
 </ol>
 </li>
 </ol>
-<p>每个阶段的队列长度不是一致的，可能Flush阶段的leader会在sync阶段追加进前一个队列，成为follower，但是follower永远是follower。</p>
+<p>每个阶段的队列长度不是一致的，可能Flush阶段的leader会在Sync阶段追加进前一个队列，成为follower，但是follower永远是follower。</p>
 <p>网上的这个图很形象。<br><img src="../images/20200605174715.png" alt></p>
 <p>在Sync stage阶段，有两个参数可以影响组提交：</p>
 <ul>
