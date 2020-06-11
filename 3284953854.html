@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://htchz.cc/images/pasted-183.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-185.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-182.png">
-<meta property="og:updated_time" content="2019-08-22T06:21:52.435Z">
+<meta property="og:updated_time" content="2020-06-08T09:53:39.710Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[网络]TCP拥塞控制那些事">
 <meta name="twitter:description" content="1. 前言看完了《TCP/IP详解 卷一》，对TCP/IP协议簇的认知多了一些。总结一下TCP窗口有关的慢启动、拥塞避免、快速重传、快速恢复的概念。 2. TCP滑动窗口窗口有两种，通告窗口(Receiver Window,rwnd)和拥塞窗口(Congestion Window,cwnd)。    通告窗口：通告窗口表明了接收端当前的接受能力。TCP在发送端和接收端都是有缓冲区的，通告窗口声明了">
@@ -298,7 +298,7 @@
 <h1 id="拥塞控制">3. 拥塞控制</h1><p><img src="/images/pasted-183.png" alt="upload successful"><br>上图是一个tcp刚开始传输数据时的速率变化走向。</p>
 <p>拥塞避免、慢启动、快速重传、快速恢复这四个词其实并不能单独分开讲。当一个连接的网络情况不好的时候，就会<strong>丢包</strong>或<strong>超时</strong>，这时就要降低发送方的发送速率防止恶化，这种就是拥塞控制。</p>
 <p>这种机制涉及到cwnd和ssthresh两个指标，ssthresh是一个区分慢启动和拥塞避免的阈值，当拥塞发生时，分两种情况<br>超时：ssthresh = cwnd / 2（最小为2MSS），cwnd = 1MSS，进入慢启动<br>丢包：ssthresh = cwnd / 2（最小为2MSS），cwnd = ssthresh + 3MSS，进入快速重传</p>
-<h1 id="慢启动">4. 慢启动</h1><p>慢启动其实是发送速率重新计算，cwnd 初始值为一个数据报大小，ssthresh初始值为65535，是一个然后在到达阈值之前，每接收到一个新的ACK，cwnd就会增加一个报文段的大小，这样子慢启动其实是以指数增加网络传</p>
+<h1 id="慢启动">4. 慢启动</h1><p>慢启动其实是发送速率重新计算，cwnd 初始值为一个数据报大小，ssthresh初始值为65535，是一个然后在到达阈值之前，每接收到一个新的ACK，cwnd就会增加一个报文段的大小，这样子慢启动其实是以指数增加速率.</p>
 <h1 id="拥塞控制-1">5. 拥塞控制</h1><p><img src="/images/pasted-185.png" alt="upload successful"><br>上图是一个tcp刚开始传输数据时的速率变化走向。</p>
 <p>拥塞避免、慢启动、快速重传、快速恢复这四个词其实并不能单独分开讲。当一个连接的网络情况不好的时候，就会<strong>丢包</strong>或<strong>超时</strong>，这时就要降低发送方的发送速率防止恶化，这种就是拥塞控制。</p>
 <p>这种机制涉及到cwnd和ssthresh两个指标，ssthresh是一个区分慢启动和拥塞避免的阈值，当拥塞发生时，分两种情况<br>超时：ssthresh = cwnd / 2（最小为2MSS），cwnd = 1MSS，进入慢启动<br>丢包：进入快速重传</p>

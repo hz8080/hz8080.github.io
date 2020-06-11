@@ -18,13 +18,13 @@
   
   
   <title>[碧油鸡]Hexo-admin的404探索 | 土川的自留地</title>
-  <meta name="description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是我习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底我很难受，于是有了下面的记录。 1. First">
+  <meta name="description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是笔者习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底实在难受，于是有了下面的记录。 1. Firs">
 <meta name="keywords" content="BUG">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[碧油鸡]Hexo-admin的404探索">
 <meta property="og:url" content="https://htchz.cc/3915904827.html">
 <meta property="og:site_name" content="土川的自留地">
-<meta property="og:description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是我习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底我很难受，于是有了下面的记录。 1. First">
+<meta property="og:description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是笔者习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底实在难受，于是有了下面的记录。 1. Firs">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/pasted-19.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-21.png">
@@ -36,10 +36,10 @@
 <meta property="og:image" content="https://htchz.cc/images/pasted-27.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-28.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-29.png">
-<meta property="og:updated_time" content="2020-01-12T06:33:01.439Z">
+<meta property="og:updated_time" content="2020-06-06T17:53:23.395Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[碧油鸡]Hexo-admin的404探索">
-<meta name="twitter:description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是我习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底我很难受，于是有了下面的记录。 1. First">
+<meta name="twitter:description" content="作为一个不懂js的后端开始了瞎搞。。  hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是笔者习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底实在难受，于是有了下面的记录。 1. Firs">
 <meta name="twitter:image" content="https://htchz.cc/images/pasted-19.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/3915904827.html">
@@ -293,14 +293,14 @@
         <blockquote>
 <p>作为一个不懂js的后端开始了瞎搞。。</p>
 </blockquote>
-<p>hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是我习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底我很难受，于是有了下面的记录。</p>
-<h1 id="First-Blood-第一张图">1. First Blood 第一张图</h1><p><img src="/images/pasted-19.png" alt="upload successful"><br>如上图，上传成功后出现了404，点击404发生的代码，如下：<br><img src="/images/pasted-21.png" alt="upload successful"><br>hexo-admin直接生成html进行html内容的替换。<br>可以看到我把图片粘贴之后，hexo-admin做了三个操作：</p>
+<p>hexo-admin在写的时候，一般是把图片放到图床，再获得图片链接加入md，但是笔者习惯了为知笔记直接把图片复制粘贴进md里。不过hexo-admin确实加入了这个直接粘贴图片的功能，把图片复制进md里，有时会出现一个404的问题，一直百度谷歌无果，同事老哥一直叫我用gitbook，但是不找出这个404的谜底实在难受，于是有了下面的记录。</p>
+<h1 id="First-Blood-第一张图">1. First Blood 第一张图</h1><p><img src="/images/pasted-19.png" alt="upload successful"><br>如上图，上传成功后出现了404，点击404发生的代码，如下：<br><img src="/images/pasted-21.png" alt="upload successful"><br>hexo-admin直接生成html进行html内容的替换。<br>可以看到笔者把图片粘贴之后，hexo-admin做了三个操作：</p>
 <ol>
 <li>上传图片，返回<code>![upload successful](/images/pasted-8.png)</code>的字符串给客户端</li>
 <li>客户端根据返回的字符串重新渲染</li>
 <li>把新的文章内容post到服务器</li>
 </ol>
-<p><strong>为什么上传成功还404???</strong><br>这时我点开图片的链接</p>
+<p><strong>为什么上传成功还404???</strong><br>这时笔者点开图片的链接</p>
 <p><img src="/images/pasted-22.png" alt="upload successful"><br>没问题啊，诡异。</p>
 <h1 id="第二张图">2. 第二张图</h1><p>粘贴第二张图片的时候</p>
 <p><img src="/images/pasted-23.png" alt="upload successful"></p>
@@ -311,9 +311,9 @@
 <li>上面是在宿舍的操作，在公司操作的时候完全没出现这种404。不过有一个现象是，公司网络ping这台vps的时候有点慢，宿舍网ping这台vps非常快。</li>
 <li>新建了另一台vps，同样的环境，也没有404。但是这台vps在洛杉矶，网络时延有点大。</li>
 </ul>
-<h1 id="各种小动作">5. 各种小动作</h1><p>于是我在404的js打上断点，</p>
+<h1 id="各种小动作">5. 各种小动作</h1><p>于是在404的js打上断点，</p>
 <p><img src="/images/pasted-24.png" alt="upload successful"><br>运行到这里之后，继续执行所有js，没发生404。</p>
-<p>于是乎我猜想：</p>
+<p>于是乎猜想：</p>
 <blockquote>
 <p>服务器保存图片的接下来，返回了response，肯定还进行了<code>某个操作</code>，但是短时间内这个操作没完成，导致短时间内访问的时候还不能通。</p>
 </blockquote>
