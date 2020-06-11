@@ -25,7 +25,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言《Redis设计与实现》第二版基于redis3.0，现在6.0都快出了。现在redis和书里有些内容已经不一致了，不过用来探索redis是挺好的。 2. 碎碎念2.1. 编码现在的redis已经增加了quicklist、stream编码。 quicklist是ziplist和linkedlist的整合，作为list的唯一编码，其思想就是将ziplist分段，ziplist内存碎片少但每次">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-06-11T05:19:51.093Z">
+<meta property="og:updated_time" content="2020-06-11T05:30:17.428Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Redis]《Redis设计与实现》">
 <meta name="twitter:description" content="1. 前言《Redis设计与实现》第二版基于redis3.0，现在6.0都快出了。现在redis和书里有些内容已经不一致了，不过用来探索redis是挺好的。 2. 碎碎念2.1. 编码现在的redis已经增加了quicklist、stream编码。 quicklist是ziplist和linkedlist的整合，作为list的唯一编码，其思想就是将ziplist分段，ziplist内存碎片少但每次">
@@ -311,7 +311,7 @@
 <p>首先对于位图需要4字节对齐，因为redis里的SWAR算法一次操作4个字节，保证字节对齐可以提高内存读取速度，然后源码里有这么一段</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Count initial bytes not aligned to 32 bit. */</span></span><br><span class="line"><span class="keyword">while</span>((<span class="keyword">unsigned</span> <span class="keyword">long</span>)p &amp; <span class="number">3</span> &amp;&amp; count) &#123;</span><br><span class="line">    bits += bitsinbyte[*p++];</span><br><span class="line">    count--;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这段我看了半天看不懂，最后在stackoverflow<a href="https://stackoverflow.com/questions/19190502/how-do-i-check-a-memory-address-is-32-bit-aligned-in-c" target="_blank" rel="noopener">How Do I check a Memory address is 32 bit aligned in C</a>找到答案，大概意思就是地址结尾是·<code>0b100</code>的倍数，也就是<code>&amp; 0b11 = 0</code>，那么这个地址就是可以4字节对齐的。所以如果<code>(unsigned long)p &amp; 3</code>为true，说明地址不对齐，就要指针前进一个字节，并通过查表法计算这个字节的1的数量。</p>
+<p>这段我看了半天看不懂，最后在stackoverflow<a href="https://stackoverflow.com/questions/19190502/how-do-i-check-a-memory-address-is-32-bit-aligned-in-c" target="_blank" rel="noopener">How Do I check a Memory address is 32 bit aligned in C</a>找到答案，大概意思就是地址结尾是<code>0b100</code>的倍数，也就是<code>&amp; 0b11 = 0</code>，那么这个地址就是可以4字节对齐的。所以如果<code>(unsigned long)p &amp; 3</code>为true，说明地址不对齐，就要指针前进一个字节，并通过查表法计算这个字节的1的数量。</p>
 <p>接着同时计算连续的28个字节，每4字节使用一次SWAR算法，再把7次结果汇总。</p>
 <p>最后余下不足28字节的再用查表法计算。整个bitcount的过程就是这样。</p>
 <blockquote>
