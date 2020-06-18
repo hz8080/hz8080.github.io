@@ -25,7 +25,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言《Redis设计与实现》第二版基于redis3.0，现在6.0都快出了。现在redis和书里有些内容已经不一致了，不过用来探索redis是挺好的。 2. 碎碎念2.1. 编码现在的redis已经增加了quicklist、stream编码。 quicklist是ziplist和linkedlist的整合，作为list的唯一编码，其思想就是将ziplist分段，ziplist内存碎片少但每次">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-06-11T05:30:17.428Z">
+<meta property="og:updated_time" content="2020-06-18T09:42:59.484Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Redis]《Redis设计与实现》">
 <meta name="twitter:description" content="1. 前言《Redis设计与实现》第二版基于redis3.0，现在6.0都快出了。现在redis和书里有些内容已经不一致了，不过用来探索redis是挺好的。 2. 碎碎念2.1. 编码现在的redis已经增加了quicklist、stream编码。 quicklist是ziplist和linkedlist的整合，作为list的唯一编码，其思想就是将ziplist分段，ziplist内存碎片少但每次">
@@ -286,7 +286,7 @@
 <p>作者一度用着44的限制，写着39的注释，让我一度迷惑。</p>
 <h2 id="多线程">2.5. 多线程</h2><p>redis6.0加入了多线程，不知道和阿里云的多线程redis有什么区别，看起来都是在io线程并行，工作线程串行。</p>
 <h2 id="raft">2.6. raft</h2><p>redis 领头sentinel选举和主节点选举都是采用raft协议的选举方式：同一个term里，一人一票；当得到majority的票时选举成功，当票被瓜分选举失败开始新一轮。</p>
-<p>在选举过程，当candidate收到投票请求时，就会投票给那个人，这个和raft论文不太一样，raft论文需要判断log index和term来确定是否给票，而这里只要投票请求没过期且candidate还没给投票，那就谁先来投谁。</p>
+<p>在选举过程，当candidate收到投票请求时，比较投票请求没过期、candidate是否有选票、主从复制偏移量，符合的话那就投给那个节点。</p>
 <p>在cluster模式下，一般是一个主节点带多个从节点。从节点晋升为主节点需要得到majority主节点的票，这个也是和raft类似的选举方式。</p>
 <h2 id="LFU">2.7. LFU</h2><p>redis4.0新增了lfu策略来淘汰key</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObject</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> type:<span class="number">4</span>;</span><br><span class="line">    <span class="keyword">unsigned</span> encoding:<span class="number">4</span>;</span><br><span class="line">    <span class="keyword">unsigned</span> lru:LRU_BITS; <span class="comment">/* LRU time (relative to global lru_clock) or</span></span><br><span class="line"><span class="comment">                            * LFU data (least significant 8 bits frequency</span></span><br><span class="line"><span class="comment">                            * and most significant 16 bits access time). */</span></span><br><span class="line">    <span class="keyword">int</span> refcount;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line">&#125; robj;</span><br></pre></td></tr></table></figure>
