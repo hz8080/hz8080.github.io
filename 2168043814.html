@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/pasted-149.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-151.png">
-<meta property="og:updated_time" content="2020-06-30T08:02:42.147Z">
+<meta property="og:updated_time" content="2020-06-30T08:47:42.817Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]接口限流">
 <meta name="twitter:description" content="尝试一下用lua脚本执行redis命令">
@@ -272,10 +272,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2168043814.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.3k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.2k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 10(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 9(分)</span>
 	
 
       </div>
@@ -292,27 +292,22 @@
 <blockquote>
 <p>当然还可以用计数器方法，如设定一个计数key，一秒过期，一秒内达到n次就拒绝服务。</p>
 </blockquote>
-<h1 id="两个算法">2. 两个算法</h1><p>Google了十几个中文博客，每一篇都是一样的，都说两种算法能限制速率，但是漏桶算法不能应对突发流量而令牌桶可以，又没说为什么。在我看来，两种算法的算法不过是“一正一反”，本质是一样的。无奈英语渣看了一下维基百科”LeakyBucket”词条，<code>Overview</code>里提到，文献描述了两种版本的漏桶算法：</p>
-<ol>
-<li>as a meter（作为计量工具）</li>
+<h1 id="两个算法">2. 两个算法</h1><p>Google了十几个中文博客，每一篇都是一样的，都说两种算法能限制速率，但是漏桶算法不能应对突发流量而令牌桶可以，又没说为什么。在我看来，两种算法的算法不过是“一正一反”，本质是一样的。无奈英语渣看了一下维基百科”LeakyBucket”词条，<code>Overview</code>里提到，有两种版本的漏桶算法：</p>
+<h2 id="漏桶算法（LeakyBucket）">2.1. 漏桶算法（LeakyBucket）</h2><ol>
+<li>as a meter（作为计量器）</li>
 <li>as a queue（作为调度队列）</li>
 </ol>
-<p>第一种版本是令牌桶算法的<strong>镜像实现</strong>，第二种是第一种的变种。也就是其实都差不多的。</p>
-<h2 id="漏桶算法（LeakyBucket）">2.1. 漏桶算法（LeakyBucket）</h2><p><img src="/images/pasted-149.png" alt="upload successful"></p>
+<p>第一种版本是令牌桶算法的<strong>镜像实现</strong>，也就是描述起来不一样，原理一样。只要元素能放进桶，就是允许通过。</p>
+<p>第二种版本是把桶作为队列，只有元素漏出桶，这个元素才算通过。因为漏桶的速率是恒定的，所以能起到流量整形的作用。</p>
+<p><img src="/images/pasted-149.png" alt="upload successful"></p>
 <p>漏桶算法指一定<strong>速率</strong>漏水，流量进来的时候是把水加入桶里，当水&gt; <strong>容量</strong>的时候拒绝服务（或者其他策略balabala）。</p>
 <p>两个重要参数：</p>
 <ol>
 <li>漏水速率</li>
 <li>桶容量</li>
 </ol>
-<p>对于桶满的情况下，对于新的流量有两种处理方式：</p>
-<ol>
-<li>Traffic Shaping: 暂时拦截住上方水的向下流动，等待桶中的一部分水漏走后，再放行上方水。也就是上面的<strong>as a queue</strong>。</li>
-<li>Traffic Policing: 溢出的上方水直接抛弃，也就是上面的<strong>as a meter（作为计量工具）</strong></li>
-</ol>
-<p>可以看到这种算法提供一种机制控制接口被访问的速率，平滑突发的流量。</p>
-<p>伪代码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">double rate; // leak rate in calls/s</span><br><span class="line">double burst; // bucket size in calls</span><br><span class="line">long refreshTime; // time for last water refresh</span><br><span class="line">double water; // water count at refreshTime</span><br><span class="line">refreshWater() &#123;</span><br><span class="line">    long now = getTimestamp();</span><br><span class="line">    //计算两次请求之间流失的水并相减</span><br><span class="line">    water = max(0, water- (now - refreshTime)*rate);</span><br><span class="line">    refreshTime = now;</span><br><span class="line">&#125;</span><br><span class="line">bool check() &#123;</span><br><span class="line">    refreshWater();</span><br><span class="line">    if (water &lt; burst) &#123; // 水桶还没满,继续加1</span><br><span class="line">        water ++;</span><br><span class="line">        return true;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是计量器版本伪代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">double</span> rate; <span class="comment">// leak rate in calls/s</span></span><br><span class="line"><span class="keyword">double</span> burst; <span class="comment">// bucket size in calls</span></span><br><span class="line"><span class="keyword">long</span> refreshTime; <span class="comment">// time for last water refresh</span></span><br><span class="line"><span class="keyword">double</span> water; <span class="comment">// water count at refreshTime</span></span><br><span class="line">refreshWater() &#123;</span><br><span class="line">    <span class="keyword">long</span> now = getTimestamp();</span><br><span class="line">    <span class="comment">//计算两次请求之间流失的水并相减</span></span><br><span class="line">    water = max(<span class="number">0</span>, water- (now - refreshTime)*rate);</span><br><span class="line">    refreshTime = now;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    refreshWater();</span><br><span class="line">    <span class="keyword">if</span> (water &lt; burst) &#123; <span class="comment">// 水桶还没满,继续加1</span></span><br><span class="line">        water ++;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="令牌桶算法（TokenBucket）">2.2. 令牌桶算法（TokenBucket）</h2><p><img src="/images/pasted-151.png" alt="upload successful"></p>
 <p>令牌桶算法是网络流量整形（Traffic Shaping）和速率限制（Rate Limiting）中最常使用的一种算法。典型情况下，令牌桶算法用来控制发送到网络上的数据字节数目，并允许突发数据的发送，用令牌数量代表字节数量。</p>
