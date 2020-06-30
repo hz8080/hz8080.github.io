@@ -26,12 +26,12 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://htchz.cc/images/20190822194828.png">
-<meta property="og:updated_time" content="2019-10-03T08:30:45.983Z">
+<meta property="og:image" content="https://htchz.cc/images/20200618222230.png">
+<meta property="og:updated_time" content="2020-06-18T14:22:32.262Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]Raft和ZAB的异同">
 <meta name="twitter:description" content="1. 前言为了学习etcd,先学习了解一下Raft协议，想总结一下Raft和zookeeper的ZAB协议协议的异同。 ZAB是对PAXOS算法的改进（没看过PASXOS，好像没有leader概念，我直接看的ZAB），增加了leader、follower、learner的角色。 Raft自称是比PAXOS更容易理解的一致性算法，和ZAB一样有leader、follower，而且一个强leader的">
-<meta name="twitter:image" content="https://htchz.cc/images/20190822194828.png">
+<meta name="twitter:image" content="https://htchz.cc/images/20200618222230.png">
   <!-- Canonical links -->
   <link rel="canonical" href="https://htchz.cc/3841980432.html">
   
@@ -333,7 +333,7 @@
 <h1 id="集群成员变更">11. 集群成员变更</h1><p>集群配置不能一下子全切换，否则同一个时期可能会出现两个leader。<br>Raft：使用两阶段变更。旧配置为<code>C-old</code>，新配置为<code>C-new</code>，<code>C-old-new</code>表示中间配置。配置变更命令由客户端发起，leader以log传播<code>C-old-new</code>，等<code>C-old-new</code>提交之后，再广播<code>C-new</code>配置，这时不在<code>C-new</code>里的机器就要自觉退出。Raft论文参与者后来还提出一个一阶段变更，提出限制<strong>一次变更只能添加或删除一个成员</strong>来简化问题，如果要变更多个成员，需要执行多次成员变更。</p>
 <p>ZAB：3.5版本以前是停机的，但停机变更也有问题，3.5开始使用了动态变更成员，出门左转<a href="https://zhuanlan.zhihu.com/p/57128195" target="_blank" rel="noopener">Zab协议中的动态成员变更</a>，比Raft难理解😐，反正我是看不下去😐。</p>
 <h1 id="总结">12. 总结</h1><p>Raft是在想解决PAXOS过于复杂的缺点的背景下提出来的一个一致性算法，之前也看过ZAB协议，感觉Raft可用性比ZAB高很多。</p>
-<p>不过有个问题让我迷惑是，在两阶段成员变更方案里，如果提交了<code>C-old-new</code>后，还有旧的Server1，Server2没有复制到，Server1，Server2的配置还是<code>C-old</code><br><img src="../images/20190822194828.png" alt><br>这时候Server1，Server2发生了网络分区，那么这两台服务器还是可以产生基于<code>C-old</code>的leader，而Server3，Server4，Server5形成另一个<strong>majority</strong>，也可以产生一个leader，不一样还会出现双leader问题么？若使用一阶段成员变更，就可以阻止多个majority产生，杜绝这种情况吧。</p>
+<p>不过有个问题让我迷惑是，在两阶段成员变更方案里，如果提交了<code>C-old-new</code>后，还有旧的Server1，Server2没有复制到，Server1，Server2的配置还是<code>C-old</code><br><img src="../images/20200618222230.png" alt><br>这时候Server1，Server2发生了网络分区，那么这两台服务器还是可以产生基于<code>C-old</code>的leader，而Server3，Server4，Server5形成另一个<strong>majority</strong>，也可以产生一个leader，不一样还会出现双leader问题么？若使用一阶段成员变更，就可以阻止多个majority产生，杜绝这种情况吧。</p>
 <p>很有兴趣实现一个Raft算法。</p>
 <h1 id="参考">13. 参考</h1><ol>
 <li><a href="https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md" target="_blank" rel="noopener">寻找一种易于理解的一致性算法（扩展版）</a>Raft论文汉化</li>

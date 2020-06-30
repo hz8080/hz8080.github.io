@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/pasted-149.png">
 <meta property="og:image" content="https://htchz.cc/images/pasted-151.png">
-<meta property="og:updated_time" content="2019-08-21T06:56:24.364Z">
+<meta property="og:updated_time" content="2020-06-30T08:02:42.147Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[分布式]接口限流">
 <meta name="twitter:description" content="尝试一下用lua脚本执行redis命令">
@@ -228,7 +228,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#两个算法"><span class="toc-text">2. 两个算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#漏桶算法（LeakyBucket）"><span class="toc-text">2.1. 漏桶算法（LeakyBucket）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#令牌桶算法（TokenBucket）"><span class="toc-text">2.2. 令牌桶算法（TokenBucket）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#redis实现"><span class="toc-text">3. redis实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#使用spring驱动"><span class="toc-text">4. 使用spring驱动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Guava-RateLimiter"><span class="toc-text">5. Guava RateLimiter</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qps限制器"><span class="toc-text">5.1. qps限制器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#后记"><span class="toc-text">6. 后记</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#两个算法"><span class="toc-text">2. 两个算法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#漏桶算法（LeakyBucket）"><span class="toc-text">2.1. 漏桶算法（LeakyBucket）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#令牌桶算法（TokenBucket）"><span class="toc-text">2.2. 令牌桶算法（TokenBucket）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#redis实现"><span class="toc-text">3. redis实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#使用spring驱动"><span class="toc-text">4. 使用spring驱动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Guava-RateLimiter"><span class="toc-text">5. Guava RateLimiter</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qps限制器"><span class="toc-text">5.1. qps限制器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#后记"><span class="toc-text">6. 后记</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">7. 参考</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -275,7 +275,7 @@
 		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 2.3k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 9(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 10(分)</span>
 	
 
       </div>
@@ -287,7 +287,8 @@
 </blockquote>
 <a id="more"></a>
 
-<h1 id="前言">1. 前言</h1><p>对于应用内部的服务限流，熔断器Hystrix，作出很好的实践。最近开源的Sentinel也是一个不错的选择。<br>不过对于对外接口限流，好像没有什么框架。常用的限流算法就是：漏桶算法和令牌桶算法。<br>本文将利用redis和lua脚本实现令牌桶算法，同时通过spring来驱动脚本。<br>Guava提供了一个RateLimiter，我们也看一下。</p>
+<h1 id="前言">1. 前言</h1><p>对于应用内部的服务限流，熔断器Hystrix，作出很好的实践。最近开源的Sentinel也是一个不错的选择。</p>
+<p>不过对于集群接口限流，好像没有什么框架。常用的限流算法就是：漏桶算法和令牌桶算法。<br>本文将利用redis和lua脚本实现令牌桶算法，同时通过spring来驱动脚本。<br>Guava提供了一个RateLimiter，我们也看一下。</p>
 <blockquote>
 <p>当然还可以用计数器方法，如设定一个计数key，一秒过期，一秒内达到n次就拒绝服务。</p>
 </blockquote>
@@ -395,6 +396,9 @@
 <li>tryRequire()属于服务限流的实现</li>
 </ul>
 <h1 id="后记">6. 后记</h1><p>除此之外，nginx也有限流模块，一种是限制连接数，一种是使用令牌桶算法，具体效果没实战。</p>
+<h1 id="参考">7. 参考</h1><ol>
+<li><a href="https://en.wikipedia.org/wiki/Leaky_bucket#Overview" target="_blank" rel="noopener">Leaky bucket</a></li>
+</ol>
 
       
     </div>
