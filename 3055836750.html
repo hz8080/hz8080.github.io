@@ -26,7 +26,7 @@
 <meta property="og:description" content="如果要在redis查找遍历key，keys命令会阻塞，是不能用的，这时就要用scan命令。 scan命令支持传入cursor、match pattern、count、type(6.0新增type)，根据游标，返回count数量的符合条件的key，以及新游标。注意这个count只是一个期望值，看源码就知道为什么不是确切值。 db是由dict组成的，set、hash、ziplist也是有dict类型的">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://htchz.cc/images/20200714163911.png">
-<meta property="og:updated_time" content="2020-07-14T10:09:53.306Z">
+<meta property="og:updated_time" content="2020-07-14T10:15:06.237Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Redis]scan命令实现">
 <meta name="twitter:description" content="如果要在redis查找遍历key，keys命令会阻塞，是不能用的，这时就要用scan命令。 scan命令支持传入cursor、match pattern、count、type(6.0新增type)，根据游标，返回count数量的符合条件的key，以及新游标。注意这个count只是一个期望值，看源码就知道为什么不是确切值。 db是由dict组成的，set、hash、ziplist也是有dict类型的">
@@ -265,10 +265,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3055836750.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.8k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.9k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 8(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 9(分)</span>
 	
 
       </div>
@@ -319,6 +319,7 @@
 <p>注意遍历停止的条件是<code>cursor &amp;&amp; maxiterations &gt; 0 &amp;&amp; listlength(keys) &lt; count</code>，</p>
 <p>如果需要返回key/value，count *= 2，<br>maxiterations = count * 10；</p>
 <p>结合后面的过滤，所以说返回结果的长度不是严格按照我们传入的count的值，有可能超了一丢丢，有可能遍历了10倍count数量的桶没几个元素，也有可能找到很多被过滤了一大堆。</p>
+<p>还有一件事，第二步，如果scan目标是集合，且集合数量比较少，没用dict实现，那么不会用前面的遍历方法来收集元素，而是直接拿出所有元素。</p>
 <h1 id="参考">4. 参考</h1><ol>
 <li><a href="https://tech.meituan.com/2018/07/27/redis-rehash-practice-optimization.html" target="_blank" rel="noopener">美团针对Redis Rehash机制的探索和实践</a></li>
 <li><a href="https://www.shuzhiduo.com/A/Vx5MZGeYdN/" target="_blank" rel="noopener">Redis二进制反转算法分析</a></li>
