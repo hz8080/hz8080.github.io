@@ -17,19 +17,20 @@
   <meta http-equiv="window-target" content="_top">
   
   
-  <title>标签: Hexo | 土川的自留地</title>
+  <title>[Java基础]volatile的原理 | 土川的自留地</title>
   <meta name="description" content="我是黄土川，是兄弟，就来砍我。">
-<meta property="og:type" content="website">
-<meta property="og:title" content="土川的自留地">
-<meta property="og:url" content="https://htchz.cc/tags/Hexo/index.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Java基础]volatile的原理">
+<meta property="og:url" content="https://htchz.cc/2456617180.html">
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="我是黄土川，是兄弟，就来砍我。">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-07-20T16:57:01.374Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="土川的自留地">
+<meta name="twitter:title" content="[Java基础]volatile的原理">
 <meta name="twitter:description" content="我是黄土川，是兄弟，就来砍我。">
   <!-- Canonical links -->
-  <link rel="canonical" href="https://htchz.cc/tags/Hexo/index.html">
+  <link rel="canonical" href="https://htchz.cc/2456617180.html">
   
     <link rel="alternate" href="/atom.xml" title="土川的自留地" type="application/atom+xml">
   
@@ -218,128 +219,143 @@
 </aside>
 
   
-  <main class="main" role="main">
-  <article class="content article article-tags post-type-list" itemscope="">
-    <header class="article-header">
-      <h1 itemprop="name" class="hidden-xs">标签: Hexo</h1>
-      <p class="text-muted hidden-xs">共 1 篇文章</p>
-      <nav role="navigation" id="nav-main" class="okayNav">
-        <ul>
-          <li><a href="/tags">All</a></li>
-          
-          <li><a href="/tags/数据分片/">数据分片</a></li>
-          
-          <li><a href="/tags/坑/">坑</a></li>
-          
-          <li><a href="/tags/Java集合/">Java集合</a></li>
-          
-          <li><a href="/tags/goroutine/">goroutine</a></li>
-          
-          <li><a href="/tags/jdk8/">jdk8</a></li>
-          
-          <li><a href="/tags/GC/">GC</a></li>
-          
-          <li><a href="/tags/JVM/">JVM</a></li>
-          
-          <li><a href="/tags/multithread/">multithread</a></li>
-          
-          <li><a href="/tags/位图/">位图</a></li>
-          
-          <li><a href="/tags/AOP/">AOP</a></li>
-          
-          <li><a href="/tags/BUG/">BUG</a></li>
-          
-          <li><a href="/tags/正则/">正则</a></li>
-          
-          <li><a href="/tags/运维/">运维</a></li>
-          
-          <li><a href="/tags/Json/">Json</a></li>
-          
-          <li><a href="/tags/NIO/">NIO</a></li>
-          
-          <li><a href="/tags/Mysql/">Mysql</a></li>
-          
-          <li><a href="/tags/Nginx/">Nginx</a></li>
-          
-          <li><a href="/tags/properties/">properties</a></li>
-          
-          <li><a href="/tags/一致性算法/">一致性算法</a></li>
-          
-          <li><a href="/tags/k8s/">k8s</a></li>
-          
-          <li><a href="/tags/istio/">istio</a></li>
-          
-          <li><a href="/tags/服务限流/">服务限流</a></li>
-          
-          <li><a href="/tags/Hystrix/">Hystrix</a></li>
-          
-          <li><a href="/tags/OOP/">OOP</a></li>
-          
-          <li><a href="/tags/事务/">事务</a></li>
-          
-          <li><a href="/tags/Bean/">Bean</a></li>
-          
-          <li><a href="/tags/IOC/">IOC</a></li>
-          
-          <li><a href="/tags/bbr/">bbr</a></li>
-          
-          <li><a href="/tags/deploy/">deploy</a></li>
-          
-          <li><a href="/tags/位运算/">位运算</a></li>
-          
-          <li><a href="/tags/TCP/">TCP</a></li>
-          
-          <li><a href="/tags/iptables/">iptables</a></li>
-          
-          <li><a href="/tags/HTTP/">HTTP</a></li>
-          
-          <li><a href="/tags/Hexo/">Hexo</a></li>
-          
-          <li><a href="/tags/Https/">Https</a></li>
-          
-          <li><a href="/tags/BT/">BT</a></li>
-          
-          <li><a href="/tags/raft/">raft</a></li>
-          
-          <li><a href="/tags/ZAB/">ZAB</a></li>
-          
-        </ul>
-      </nav>
-    </header>
-    <!-- /header -->
-    <div class="article-body">
-      <div class="row">
-        
-<div class="col-md-6">
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Java基础-volatile的原理" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
-<article class="panel panel-default hover-shadow hover-grow" itemscope itemtype="http://schema.org/BlogPosting">
-  <div class="panel-body">
-     <div class="article-meta">
-       <time datetime="2018-03-08T10:02:00.000Z" itemprop="datePublished">2018-03-08</time>
-     </div>
-     <h3 class="article-title" itemprop="name">
-       <a class="article-link" href="/711179553.html">[建站]Hexo+Nginx+VPS实现HTTPS建站</a>
-     </h3>
-   </div>
-   
-   <div class="panel-footer">
-     
-      <a href="/tags/Hexo/" class="label label-default mb">Hexo</a>
-     
-      <a href="/tags/Https/" class="label label-default mb">Https</a>
-     
-     
-   </div>
-   
-</article>
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [Java基础]volatile的原理
+    </h1>
+  
 
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2456617180.html" class="article-date">
+	  <time datetime="2020-07-20T16:57:01.000Z" itemprop="datePublished">2020-07-21</time>
+	</a>
+</span>
+        
+        
 
-</div>
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2456617180.html#comments" class="article-comment-link">评论</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 0(字)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 1(分)</span>
+	
 
       </div>
     </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://htchz.cc/2456617180.html" title="[Java基础]volatile的原理" target="_blank" rel="external">https://htchz.cc/2456617180.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/fennecs" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/unnamed.png" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/fennecs" target="_blank"><span class="text-dark">土川</span><small class="ml-1x">后端码农</small></a></h3>
+        <div>请说出Hello World的16种写法。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
   </article>
-   
+  
+    
+  <section id="comments">
+  	
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2372178349.html" title="瞎谈补码"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/3055836750.html" title="[Redis]scan命令实现"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn" data-toggle="collapse" href="#collapseToc" aria-expanded="true" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+  </div>
+  </div>
+</nav>
+  
+
+
 </main>
 
   <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
@@ -385,6 +401,29 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
 
 
 
+
+
+   
+
+
+
+
+   
+    
+    <script defer>
+    var disqus_config = function () {
+        
+            this.page.url = 'https://htchz.cc/2456617180.html';
+        
+        this.page.identifier = 'Java基础-volatile的原理';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'htchz' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
 
 
 
