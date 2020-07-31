@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="补码是什么？记得C语言课本上写的，负数补码就是反码+1。很简单的一句话，但是讲的不明不白的。  为什么负数补码是反码+1？ 为什么正数的补码是其本身？ 为什么127下一个数是-128？  下面拿一个字节来扯淡。 1. 正数的编码是其本身在计算机里，全部都是用补码表示数，补码就是一种对数的编码规则，一个二进制数就是一个code point，类似于unicode是一种字符的编码规则，一个code po">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-07-31T10:16:19.036Z">
+<meta property="og:updated_time" content="2020-07-31T10:33:03.696Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="瞎谈补码">
 <meta name="twitter:description" content="补码是什么？记得C语言课本上写的，负数补码就是反码+1。很简单的一句话，但是讲的不明不白的。  为什么负数补码是反码+1？ 为什么正数的补码是其本身？ 为什么127下一个数是-128？  下面拿一个字节来扯淡。 1. 正数的编码是其本身在计算机里，全部都是用补码表示数，补码就是一种对数的编码规则，一个二进制数就是一个code point，类似于unicode是一种字符的编码规则，一个code po">
@@ -225,7 +225,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#正数的编码是其本身"><span class="toc-text">1. 正数的编码是其本身</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#原码和反码"><span class="toc-text">2. 原码和反码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#补码"><span class="toc-text">3. 补码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#关于正负"><span class="toc-text">4. 关于正负</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#相反数"><span class="toc-text">5. 相反数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#后记"><span class="toc-text">6. 后记</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">7. 参考</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#正数的编码是其本身"><span class="toc-text">1. 正数的编码是其本身</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#原码和反码"><span class="toc-text">2. 原码和反码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#补码"><span class="toc-text">3. 补码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#编码是有序的"><span class="toc-text">4. 编码是有序的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#相反数"><span class="toc-text">5. 相反数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#后记"><span class="toc-text">6. 后记</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">7. 参考</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -264,10 +264,10 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2372178349.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.6k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.7k(字)</span>
 	
 	
-		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 5(分)</span>
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
 	
 
       </div>
@@ -293,9 +293,9 @@
 <p>Internet协议IPv4，ICMP，UDP以及TCP都使用同样的16位反码检验和算法。虽然大多数计算机缺少“循环进位”硬件，但是这种额外的复杂性是可以接受的，因为“对于所有位（bit）位置上的错误都是同样敏感的”。 在UDP中，全0表示省略了可选的检验和特性。另外一种表示：FFFF，指示了0的检验和。 （在IPv4中，TCP和ICMP都强制性地规定了检验和，而在IPv6中可以省略）。</p>
 </blockquote>
 <h1 id="补码">3. 补码</h1><p>补码系统利用了模的思想，模就是用来表示一个计数范围，比如⏰的计量范围是0～11，模=12。二进制<code>0000 0000</code>～<code>1111 1111</code>的模就是<code>1 0000 0000</code>。</p>
-<p>上面说到模，补码系统就是这么规定：一个数和他的二补码之和等于模。由于<code>1 0000 0000</code>和0的值是等价的，两个数之和等于0，那么，<strong>求一个数的相反数只需要求二补码即可</strong>。</p>
+<p>上面说到模，补码系统就是这么规定：一个数和他的二补码之和等于模。由于<code>1 0000 0000</code>和0的值是等价的，两个数之和等于0，那么，一个负数在补码系统里可以用正数的二补码来表示。同时可以得出一个结论，求一个数的相反数，只要求他的补码就好了。</p>
 <p>由于<code>n</code>的二补码=<code>(模 - n)</code>=<code>(1 0000 0000 - n)</code>=<code>1 + 1111 1111 - n</code>，<code>1111 1111 - n</code>刚好又是按位取反，是反码，所以一个数的二补码是<strong>反码+1</strong>。但这只能作为一个定理，不能作为定义。<code>-128</code>不适用“负数补码是<strong>反码+1</strong>”，但是，在补码系统里，这个数却是存在的。事实上，<code>-128</code>的二补码等于其本身。</p>
-<h1 id="关于正负">4. 关于正负</h1><p>在我看来，二进制没有正负之分，这个正负是人为加上去的，机器并不需要知道当前的数的正负。他只要拿到<code>0000 1000</code>和<code>1111 1101</code>相加，得到<code>0000 0101</code>，那么这个<code>0000 0101</code>是表示什么，机器不感兴趣。所以说即使8bit的范围变成[-129,126]或者[-127，128]，也不影响结果，<strong>只要编码是有序的</strong>，二进制计算法则总能保证结果是正确的。</p>
+<h1 id="编码是有序的">4. 编码是有序的</h1><p>在我看来，二进制没有正负之分，这个正负是人为加上去的，机器并不需要知道当前的数的正负。他只要拿到<code>0000 1000</code>和<code>1111 1101</code>相加，得到<code>0000 0101</code>，那么这个<code>0000 0101</code>是表示什么，机器不感兴趣。所以说即使8bit的范围变成[-129,126]或者[-127，128]，也不影响结果，<strong>只要编码是有序的</strong>，二进制计算法则总能保证结果是正确的（当然，这就不是补码了）。</p>
 <p>这里的有序，指的是二进制的顺序和真值的顺序是一致的。比如不可以规定<code>{01111 1111,0111 1110,...,1000 0001,1000 0000}</code>对应<code>[-128,127]</code>，这样二进制顺序和真值顺序不一致。</p>
 <p>像原码，-15 -&gt; -14，其编码<code>1000 1111</code>-&gt;<code>1000 1110</code>，这是不按顺序的。反码大致保证了顺序，但是存在两个0的<code>code point</code>，需要引入额外的调整才能消处两个0的问题。</p>
 <p>真值的顺序和二进制顺序一致，所以127下一个数是-128，是因为<code>0111 1111</code>加1得到<code>1000 0000</code>。</p>
