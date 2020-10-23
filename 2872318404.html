@@ -19,7 +19,7 @@
   
   <title>[JVM]判断对象已死（含GC ROOT） | 土川的自留地</title>
   <meta name="description" content="看过《深入java虚拟机》，里面对GC的讲解看完有个大概了解。于是自己总结一下。 怎么判断一个对象已死，是GC的第一步。 1. 引用计数法引用计数法就是当对象的引用为0时，才进行GC。事实上这是不可行的。看下面的示例。  对象a和b都有一个instance字段，如果执行a.instance = b;b.instance = a;a = null;b = null;   上面的两个对象相互引用着">
-<meta name="keywords" content="GC,JVM">
+<meta name="keywords" content="JVM,GC">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[JVM]判断对象已死（含GC ROOT）">
 <meta property="og:url" content="https://htchz.cc/2872318404.html">
