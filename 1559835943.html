@@ -28,7 +28,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200525182526.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526000820.png">
 <meta property="og:image" content="https://htchz.cc/images/20200526001104.png">
-<meta property="og:updated_time" content="2020-06-05T09:01:05.959Z">
+<meta property="og:updated_time" content="2020-11-04T15:51:18.332Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Mysql]漫游redo log">
 <meta name="twitter:description" content="redo log负责记录物理数据页，所以无论执行多少次都是幂等的；而binlog是记录逻辑数据，执行多次就可能重复数据。 数据结构是一个环形数组，innodb将未写入磁盘的页叫做脏页，redo log的作用就是记录脏页的数据。 在宕机恢复时，一个事务是否持久化是根据redo log刷盘情况决定的。如果一个事务的redo log已经全部刷入磁盘，那么这个事务是有效的，反之需要根据undo log回滚">
@@ -305,6 +305,9 @@
 <li>data：redo log内容</li>
 </ul>
 <p>具体type的类型有很多，参考底部链接，其中包括undo log对应的redo log<code>MLOG_UNDO_INSERT</code>。一个操作产生的redo log可能是一个，也可能是一组redo log。</p>
+<blockquote>
+<p>生成undo log的时候会写redo log。当数据恢复的时候，可以根据undo log恢复还没刷盘的undo log。</p>
+</blockquote>
 <h2 id="log-block">2.2. log block</h2><p>组织redo log的是log block，一个log block是存储redo log的基本单位，和页有点类似。<br><img src="../images/20200526000820.png" alt></p>
 <ul>
 <li>log block header：存放block信息</li>
