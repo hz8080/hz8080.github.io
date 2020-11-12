@@ -26,7 +26,7 @@
 <meta property="og:site_name" content="土川的自留地">
 <meta property="og:description" content="1. 前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-10T08:01:45.304Z">
+<meta property="og:updated_time" content="2020-11-12T03:57:13.545Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[NIO]linux的I&#x2F;O多路复用">
 <meta name="twitter:description" content="1. 前言上篇提到i/o多路复用，是通过单进程监听多个文件描述的状态，达到减少线程阻塞的目的。  内核（kernel）利用文件描述符（file descriptor）来访问文件。 文件描述符是非负整数。 打开现存文件或新建文件时(包括socket被打开)，内核会返回一个文件描述符。 读写文件也需要使用文件描述符来指定待读写的文件。在linux环境下，进入/proc目录可以看到许多代表文件描述符的文">
@@ -225,7 +225,7 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#接口"><span class="toc-text">2. 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#i-o多路复用原理"><span class="toc-text">2.1. i/o多路复用原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#select"><span class="toc-text">2.2. select</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#poll"><span class="toc-text">2.3. poll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#epoll"><span class="toc-text">2.4. epoll</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#java-nio"><span class="toc-text">3. java nio</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结束语"><span class="toc-text">4. 结束语</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">5. 参考</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">1. 前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#接口"><span class="toc-text">2. 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#i-o多路复用原理"><span class="toc-text">2.1. i/o多路复用原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#select"><span class="toc-text">2.2. select</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#poll"><span class="toc-text">2.3. poll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#epoll"><span class="toc-text">2.4. epoll</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#java-nio"><span class="toc-text">3. java nio</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#使用场景"><span class="toc-text">4. 使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#select-1"><span class="toc-text">4.1. select</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#poll-1"><span class="toc-text">4.2. poll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#epoll-1"><span class="toc-text">4.3. epoll</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">5. 参考</span></a></li></ol>
     </nav>
   </div>
 </aside>
@@ -269,7 +269,7 @@
         <span class="post-comment"><i class="icon icon-comment"></i> <a href="/3010153098.html#comments" class="article-comment-link">评论</a></span>
         
 	
-		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.6k(字)</span>
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">字数统计: 1.8k(字)</span>
 	
 	
 		<span class="post-readcount hidden-xs" itemprop="timeRequired">阅读时长: 6(分)</span>
@@ -330,10 +330,15 @@
 <p>LT:这次事件没处理，下次还告诉你。<br>ET:这次事件没处理，下次不告诉你。</p>
 <h1 id="java-nio">3. java nio</h1><p>在linux环境下，java nio 底层调用是epoll，这里有个博主写了一个<a href="https://github.com/code4wt/toyhttpd/blob/master/epoll_multiprocess_server.c" target="_blank" rel="noopener">基于epoll实现的web服务器</a>，在linux下编译完成后，可以浏览器访问8080端口，观察输出。</p>
 <p>另外，java使用的模式是水平触发。<a href="https://www.zhihu.com/question/22524908" target="_blank" rel="noopener">传送门</a></p>
-<h1 id="结束语">4. 结束语</h1><p>作为linux门外汉，了解的不是很深入。</p>
+<h1 id="使用场景">4. 使用场景</h1><p>epoll不能完全代替其余两种，他们总有适合自己的使用场景。</p>
+<h2 id="select-1">4.1. select</h2><p>select 的 timeout 参数精度为 1ns，而 poll 和 epoll 为 1ms，因此 select 更加适用于实时性要求比较高的场景，比如核反应堆的控制。</p>
+<p>select 可移植性更好，几乎被所有主流平台所支持。</p>
+<h2 id="poll-1">4.2. poll</h2><p>poll 没有最大描述符数量的限制，如果平台支持并且对实时性要求不高，应该使用 poll 而不是 select。</p>
+<h2 id="epoll-1">4.3. epoll</h2><p>适合大量的文件描述符需要监听。如果少量，也不是非要用epoll。epoll移植性没有select好。。</p>
 <h1 id="参考">5. 参考</h1><ul>
 <li><a href="https://cloud.tencent.com/developer/article/1005481" target="_blank" rel="noopener">大话 Select、Poll、Epoll</a></li>
 <li><a href="http://www.tianxiaobo.com/2018/03/02/%E5%9F%BA%E4%BA%8Eepoll%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84web%E6%9C%8D%E5%8A%A1%E5%99%A8/" target="_blank" rel="noopener">基于epoll实现简单的web服务器</a></li>
+<li><a href="https://www.jianshu.com/p/fc1d53e7e470" target="_blank" rel="noopener">IO多路复用之select、poll、epoll详解</a></li>
 </ul>
 
       

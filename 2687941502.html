@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://htchz.cc/images/20200318103543.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318154713.png">
 <meta property="og:image" content="https://htchz.cc/images/20200318230122.png">
-<meta property="og:updated_time" content="2020-06-04T03:51:48.841Z">
+<meta property="og:updated_time" content="2020-11-05T07:25:34.942Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[JVM]G1">
 <meta name="twitter:description" content="不得不说G1有点难理解">
@@ -340,6 +340,7 @@
 <li>清理（cleanup）：不是垃圾回收，这个阶段主要识别空分区、RSet梳理、卸载class、回收<strong>Humongous</strong>，对老年代<strong>Region</strong>进行活度排序。</li>
 </ol>
 <h3 id="与cms的比较">8.2.2. 与cms的比较</h3><p>这个过程有点像CMS的执行过程。总体上看，区别是<strong>重标记</strong>这个阶段，CMS需要从根集重新扫（见<a href="./4242301031.html#4242301031">CMS</a>），而STAB算法的<strong>写屏障</strong>是在对象删除时都要标记对象，避免漏标记。所以在<strong>remark</strong>阶段只需要扫描队列对象就可以了。</p>
+<p>G1使用了快照，新对象隐式存活，所以重标记快，但是浮动垃圾比CMS多（不是说CMS没有）。</p>
 <h3 id="拷贝存活对象（evacuation）">8.2.3. 拷贝存活对象（evacuation）</h3><p>STW，对标记为垃圾的对象进行清理。一次全局并发标记<strong>完成后</strong>，就开始回收了。</p>
 <ul>
 <li>Young GC：选定所有新生代里的<strong>Region</strong>。通过控制新生代的region个数来控制young GC的开销。</li>
